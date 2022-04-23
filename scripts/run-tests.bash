@@ -1,1 +1,1 @@
-echo "Test will be run"
+echo "Test will be run."
