@@ -15,7 +15,7 @@ public class Question {
     @Min(1)
     private int id;
 
-    @NotBlank(message = "Question cannot be blank!")
+    @NotBlank(message = "Question text cannot be blank!")
     private String text;
 
     @Min(1)

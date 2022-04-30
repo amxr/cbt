@@ -33,7 +33,6 @@ public class TestRequest {
     @NotBlank(message = "Exam must have instructions!")
     private String instructions;
 
-    @Future
     private LocalDateTime start;
 
     @Min(300)
