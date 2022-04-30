@@ -18,19 +18,19 @@ import java.util.List;
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class TestRequest {
 
-    @NotBlank(message = "Exam number cannot be blank!")
-    private String examNumber;
+    @NotBlank(message = "Test number cannot be blank!")
+    private String testNumber;
 
-    @NotBlank(message = "Exam name cannot be blank!")
+    @NotBlank(message = "Test name cannot be blank!")
     private String name;
 
     @Min(1)
     private int passMark;
 
-    @NotBlank(message = "Exam description cannot be blank!")
+    @NotBlank(message = "Test description cannot be blank!")
     private String description;
 
-    @NotBlank(message = "Exam must have instructions!")
+    @NotBlank(message = "Test must have instructions!")
     private String instructions;
 
     private LocalDateTime start;
@@ -41,5 +41,6 @@ public class TestRequest {
     @NotNull
     private boolean isTimed;
 
+    @NotEmpty(message = "Questions cannot be empty!")
     private List<@Valid Question> questions;
 }
