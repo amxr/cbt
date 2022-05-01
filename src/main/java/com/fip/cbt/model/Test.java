@@ -21,7 +21,7 @@ public class Test {
     private String id;
     private String testNumber;
     private String name;
-    private int passMark;
+    private double passMark;
     private String description;
     private String instructions;
     private LocalDateTime start;

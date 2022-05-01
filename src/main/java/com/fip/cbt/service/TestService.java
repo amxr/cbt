@@ -4,6 +4,8 @@ import com.fip.cbt.controller.request.TestRequest;
 import com.fip.cbt.controller.request.UpdateTestRequest;
 import com.fip.cbt.model.Test;
 
+import java.util.List;
+
 public interface TestService {
     Test add(TestRequest testRequest);
 
@@ -12,4 +14,6 @@ public interface TestService {
     void delete(String testNumber);
 
     void update(UpdateTestRequest updateTestRequest);
+
+    List<Test> getAll();
 }

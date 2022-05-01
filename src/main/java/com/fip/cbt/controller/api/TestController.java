@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @CrossOrigin
@@ -21,6 +22,11 @@ public class TestController {
     @ResponseStatus(HttpStatus.CREATED)
     public Test add(@Valid @RequestBody TestRequest testRequest){
         return testService.add(testRequest);
+    }
+
+    @GetMapping
+    public List<Test> getAll(){
+        return testService.getAll();
     }
 
     @GetMapping("/{testNumber}")

@@ -25,7 +25,7 @@ public class TestRequest {
     private String name;
 
     @Min(1)
-    private int passMark;
+    private double passMark;
 
     @NotBlank(message = "Test description cannot be blank!")
     private String description;

@@ -7,12 +7,11 @@ import com.fip.cbt.exception.ResourceNotFoundException;
 import com.fip.cbt.mapper.TestMapper;
 import com.fip.cbt.model.Test;
 import com.fip.cbt.repository.TestRepository;
-import com.mongodb.client.model.FindOneAndReplaceOptions;
-import com.mongodb.client.model.ReturnDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class TestServiceImpl implements TestService{
@@ -55,5 +54,10 @@ public class TestServiceImpl implements TestService{
                 );
         Test test = TestMapper.toTest(updateTestRequest);
         testRepository.save(test);
+    }
+
+    @Override
+    public List<Test> getAll() {
+        return testRepository.findAll();
     }
 }

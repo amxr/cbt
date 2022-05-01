@@ -16,7 +16,7 @@ public class Question {
     private String text;
 
     @Min(1)
-    private int point;
+    private double point;
 
     @NotEmpty(message = "Options cannot be empty!")
     private List<@NotBlank(message = "No blank options allowed!") String> options;
