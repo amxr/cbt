@@ -16,21 +16,21 @@ import java.util.List;
 @Accessors(chain = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-public class TestRequest {
+public class ExamRequest {
 
-    @NotBlank(message = "Test number cannot be blank!")
-    private String testNumber;
+    @NotBlank(message = "Exam number cannot be blank!")
+    private String examNumber;
 
-    @NotBlank(message = "Test name cannot be blank!")
+    @NotBlank(message = "Exam name cannot be blank!")
     private String name;
 
     @Min(1)
     private double passMark;
 
-    @NotBlank(message = "Test description cannot be blank!")
+    @NotBlank(message = "Exam description cannot be blank!")
     private String description;
 
-    @NotBlank(message = "Test must have instructions!")
+    @NotBlank(message = "Exam must have instructions!")
     private String instructions;
 
     private LocalDateTime start;

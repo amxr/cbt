@@ -1,6 +1,6 @@
 package com.fip.cbt.repository;
 
-import com.fip.cbt.model.Test;
+import com.fip.cbt.model.Exam;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -8,10 +8,10 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface TestRepository extends MongoRepository<Test, String> {
+public interface ExamRepository extends MongoRepository<Exam, String> {
 
     @Query("{testNumber:'?0'}")
-    Optional<Test> findTestByTestNumber(String testNumber);
+    Optional<Exam> findExamByExamNumber(String examNumber);
 
     long count();
 }
