@@ -30,6 +30,7 @@ public class ExamController {
     }
 
     @GetMapping("/{examNumber}")
+    @ResponseStatus(HttpStatus.FOUND)
     public Exam getOne(@PathVariable String examNumber){
         return examService.getOne(examNumber);
     }
@@ -40,7 +41,7 @@ public class ExamController {
     }
 
     @PutMapping
-    public void update(@Valid @RequestBody UpdateExamRequest updateExamRequest){
-        examService.update(updateExamRequest);
+    public Exam update(@Valid @RequestBody UpdateExamRequest updateExamRequest){
+        return examService.update(updateExamRequest);
     }
 }

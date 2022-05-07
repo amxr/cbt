@@ -47,13 +47,13 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public void update(UpdateExamRequest updateExamRequest) {
+    public Exam update(UpdateExamRequest updateExamRequest) {
         examRepository.findById(updateExamRequest.getId())
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Exam not found.")
                 );
         Exam exam = ExamMapper.toExam(updateExamRequest);
-        examRepository.save(exam);
+        return examRepository.save(exam);
     }
 
     @Override

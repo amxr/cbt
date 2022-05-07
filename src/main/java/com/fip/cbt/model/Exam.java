@@ -1,5 +1,6 @@
 package com.fip.cbt.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
@@ -17,13 +18,16 @@ import java.util.List;
 public class Exam {
     @Id
     private String id;
+    @JsonProperty("exam_number")
     private String examNumber;
     private String name;
+    @JsonProperty("pass_mark")
     private double passMark;
     private String description;
     private String instructions;
     private LocalDateTime start;
     private int duration;
+    @JsonProperty("timed")
     private boolean isTimed;
     private List<Question> questions;
     private LocalDateTime created;

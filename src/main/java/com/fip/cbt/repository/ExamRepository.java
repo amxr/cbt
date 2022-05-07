@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface ExamRepository extends MongoRepository<Exam, String> {
 
-    @Query("{testNumber:'?0'}")
+    @Query("{examNumber:'?0'}")
     Optional<Exam> findExamByExamNumber(String examNumber);
 
     long count();

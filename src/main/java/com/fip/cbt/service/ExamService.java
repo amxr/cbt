@@ -13,7 +13,7 @@ public interface ExamService {
 
     void delete(String testNumber);
 
-    void update(UpdateExamRequest updateExamRequest);
+    Exam update(UpdateExamRequest updateExamRequest);
 
     List<Exam> getAll();
 }

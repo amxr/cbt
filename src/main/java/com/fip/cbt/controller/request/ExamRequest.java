@@ -1,6 +1,7 @@
 package com.fip.cbt.controller.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fip.cbt.model.Question;
@@ -19,12 +20,14 @@ import java.util.List;
 public class ExamRequest {
 
     @NotBlank(message = "Exam number cannot be blank!")
+    @JsonProperty("exam_number")
     private String examNumber;
 
     @NotBlank(message = "Exam name cannot be blank!")
     private String name;
 
     @Min(1)
+    @JsonProperty("pass_mark")
     private double passMark;
 
     @NotBlank(message = "Exam description cannot be blank!")
@@ -39,6 +42,7 @@ public class ExamRequest {
     private int duration;
 
     @NotNull
+    @JsonProperty("timed")
     private boolean isTimed;
 
     @NotEmpty(message = "Questions cannot be empty!")
