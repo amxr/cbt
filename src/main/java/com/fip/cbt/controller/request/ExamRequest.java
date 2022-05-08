@@ -26,7 +26,7 @@ public class ExamRequest {
     @NotBlank(message = "Exam name cannot be blank!")
     private String name;
 
-    @Min(1)
+    @Min(value = 1, message = "pass_mark cannot be less than 1")
     @JsonProperty("pass_mark")
     private double passMark;
 
@@ -36,12 +36,13 @@ public class ExamRequest {
     @NotBlank(message = "Exam must have instructions!")
     private String instructions;
 
+    @NotNull(message = "start cannot be empty")
     private LocalDateTime start;
 
-    @Min(300)
+    @Min(value = 300, message = "duration must be atleast 300 seconds")
     private int duration;
 
-    @NotNull
+    @NotNull(message = "timed cannot be empty")
     @JsonProperty("timed")
     private boolean isTimed;
 

@@ -14,9 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -44,6 +44,7 @@ class ExamControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
     void addExamTest() throws Exception {
         ExamRequest newExam = getExam();
         MvcResult result = mockMvc.perform(
@@ -74,6 +75,7 @@ class ExamControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
     void getAllExamsTest() throws Exception {
         ExamRequest newExam = getExam();
         mockMvc.perform(
@@ -110,6 +112,7 @@ class ExamControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
     void getOneExamTest() throws Exception{
         ExamRequest newExam = getExam();
         mockMvc.perform(get(URI+"/"+newExam.getExamNumber()))
@@ -145,6 +148,7 @@ class ExamControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
     void deleteExamTest() throws Exception{
         ExamRequest newExam = getExam();
         mockMvc.perform(delete(URI+"/"+newExam.getExamNumber()))
@@ -180,6 +184,7 @@ class ExamControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
     void updateExamTest() throws Exception{
         ExamRequest newExam = getExam();
         MvcResult result = mockMvc.perform(
