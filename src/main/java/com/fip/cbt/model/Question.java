@@ -12,6 +12,10 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class Question {
+    
+    @Id
+    private String id;
+    
     @NotBlank(message = "Question text cannot be blank!")
     private String text;
 

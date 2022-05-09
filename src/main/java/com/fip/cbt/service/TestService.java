@@ -13,7 +13,7 @@ public interface TestService {
 
     void delete(String testNumber);
 
-    void update(UpdateTestRequest updateTestRequest);
+    Test update(UpdateTestRequest updateTestRequest);
 
     List<Test> getAll();
 }

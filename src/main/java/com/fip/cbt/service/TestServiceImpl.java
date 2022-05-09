@@ -47,13 +47,13 @@ public class TestServiceImpl implements TestService{
     }
 
     @Override
-    public void update(UpdateTestRequest updateTestRequest) {
+    public Test update(UpdateTestRequest updateTestRequest) {
         testRepository.findById(updateTestRequest.getId())
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Test not found.")
                 );
         Test test = TestMapper.toTest(updateTestRequest);
-        testRepository.save(test);
+        return testRepository.save(test);
     }
 
     @Override

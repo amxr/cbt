@@ -27,9 +27,6 @@ public class CandidateServiceImpl implements CandidateService {
          if(findCandidate.isPresent()) {
             throw new ResourceAlreadyExistsException("Candidate with username " + newCandidateRequest.getUsername() + " exists");
         }
-                //.orElseThrow( () ->
-                //        new ResourceAlreadyExistsException("Candidate with username "+newCandidateRequest.getUsername()+" exists"
-                //        ));
         Candidate newCandidate = CandidateMapper.toCandidate(newCandidateRequest);
         return candidateRepository.save(newCandidate);
         //return candidateRepository.save(CandidateMapper.toCandidate(newCandidateRequest));

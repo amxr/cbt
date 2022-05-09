@@ -4,6 +4,7 @@ import com.fip.cbt.controller.request.TestRequest;
 import com.fip.cbt.controller.request.UpdateTestRequest;
 import com.fip.cbt.model.Test;
 import com.fip.cbt.service.TestService;
+import com.fip.cbt.service.TestTakenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,9 @@ import java.util.List;
 public class TestController {
     @Autowired
     TestService testService;
+    
+    @Autowired
+    TestTakenService testTakenService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
