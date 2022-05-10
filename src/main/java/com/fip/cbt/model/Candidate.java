@@ -31,5 +31,5 @@ public class Candidate {
     private List<Role> roles;
     
     @DBRef
-    private Set<Exam> testsTaken;
+    private Set<Exam> examsTaken;
 }

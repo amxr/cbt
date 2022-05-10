@@ -9,9 +9,9 @@ import java.util.List;
 public interface ExamService {
     Exam add(ExamRequest examRequest);
 
-    Exam getOne(String testNumber);
+    Exam getOne(String examNumber);
 
-    void delete(String testNumber);
+    void delete(String examNumber);
 
     Exam update(UpdateExamRequest updateExamRequest);
 

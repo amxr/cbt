@@ -10,6 +10,6 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-public class UpdateTestTakenRequest extends TestTakenRequest{
+public class UpdateExamTakenRequest extends ExamTakenRequest {
     private String id;
 }

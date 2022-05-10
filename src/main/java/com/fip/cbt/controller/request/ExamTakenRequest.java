@@ -17,13 +17,13 @@ import java.util.Set;
 @Accessors(chain = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-public class TestTakenRequest {
+public class ExamTakenRequest {
     
     @NotBlank(message = "Username cannot be blank!")
     private String username;
     
-    @NotBlank(message = "Test Id cannot be blank!")
-    private String testId;
+    @NotBlank(message = "ExamId cannot be blank!")
+    private String examId;
     
     private Set<@Valid QuestionResponse> responseSet;
     

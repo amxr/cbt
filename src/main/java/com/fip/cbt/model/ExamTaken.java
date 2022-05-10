@@ -11,19 +11,19 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-@Document(collection = "teststaken")
+@Document(collection = "examstaken")
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
 @Accessors(chain = true)
-public class TestTaken {
+public class ExamTaken {
     @Id
     private String id;
     
     private String username;
     
-    private String testId;
+    private String examId;
     
     private Set<QuestionResponse> responseSet;
     

@@ -15,13 +15,14 @@ public interface ExamRepository extends MongoRepository<Exam, String> {
     Optional<Exam> findExamByExamNumber(String examNumber);
 
    @Query("{name:'?0'}")
-    Optional<Test> findTestByName(String name);
+    Optional<Exam> findExamByName(String name);
 
    @Query("{created:'?0'}")
-    Optional<Test> findTestByDate(LocalDateTime created);
+    Optional<Exam> findExamByDate(LocalDateTime created);
+   //TODO: Make query more robust
 
    @Query("{duration:'?0'}")
-    Optional<Test> findTestByDuration(int duration);
+    Optional<Exam> findExamByDuration(int duration);
 
     long count();
 }

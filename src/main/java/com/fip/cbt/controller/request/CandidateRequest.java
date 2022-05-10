@@ -1,8 +1,8 @@
 package com.fip.cbt.controller.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fip.cbt.model.Exam;
 import com.fip.cbt.model.Role;
-import com.fip.cbt.model.Test;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -32,5 +32,5 @@ public class CandidateRequest {
     private List<Role> roles;
 
     //@NotEmpty(message = "Questions cannot be empty!")
-    private Set<@Valid Test> testsTaken;
+    private Set<@Valid Exam> examsTaken;
 }
