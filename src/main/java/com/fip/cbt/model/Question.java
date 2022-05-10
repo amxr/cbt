@@ -23,7 +23,7 @@ public class Question {
     @NotBlank(message = "Question text cannot be blank!")
     private String text;
 
-    @Min(1)
+    @Min(value = 1, message = "minimum value for point is 1")
     private double point;
 
     @NotEmpty(message = "Options cannot be empty!")
