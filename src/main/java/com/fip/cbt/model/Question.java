@@ -1,7 +1,10 @@
 package com.fip.cbt.model;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 
 import javax.validation.constraints.Min;
@@ -10,6 +13,7 @@ import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Data
+@SuperBuilder
 @Accessors(chain = true)
 public class Question {
     

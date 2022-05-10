@@ -1,4 +1,5 @@
 package com.fip.cbt.service;
+//TODO: Bump JUnit to JUnit5 [DONE]
 
 import com.fip.cbt.controller.request.CandidateRequest;
 import com.fip.cbt.exception.ResourceNotFoundException;
@@ -7,12 +8,11 @@ import com.fip.cbt.model.Candidate;
 import com.fip.cbt.model.Role;
 import com.fip.cbt.repository.CandidateRepository;
 import com.fip.cbt.repository.RoleRepository;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -25,8 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-//@ExtendWith(MockitoExtension.class)
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+//@RunWith(MockitoJUnitRunner.class)
 public class CandidateServiceImplTest {
     @Mock
     private CandidateRepository candidateRepository;
@@ -38,7 +38,7 @@ public class CandidateServiceImplTest {
     @InjectMocks
     private CandidateServiceImpl candidateService;
 
-    /*@Before
+    /*@BeforeAll
     public void setUp(){
         Candidate alice = new Candidate().setFirstName("Alice")
                 .setLastName("Alex")
@@ -121,7 +121,7 @@ public class CandidateServiceImplTest {
         verify(candidateRepository, times(1)).delete(any(Candidate.class));
     }
 
-    /*@After
+    /*@AfterAll
     public void tearDown(){
         candidateRepository.deleteAll();
     }*/

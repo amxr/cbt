@@ -1,37 +1,38 @@
 package com.fip.cbt.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fip.cbt.CbtApplication;
 import com.fip.cbt.controller.api.CandidateController;
 import com.fip.cbt.controller.request.CandidateRequest;
 import com.fip.cbt.mapper.CandidateMapper;
+import com.fip.cbt.mapper.modelassemblers.CandidateAssembler;
 import com.fip.cbt.model.Candidate;
 import com.fip.cbt.service.CandidateService;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-//@AutoConfigureMockMvc
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {CbtApplication.class})
+@AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {CbtApplication.class})
 //@WebMvcTest(CandidateController.class)
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@WebAppConfiguration
-@AutoConfigureMockMvc
+//@WebAppConfiguration
+//@AutoConfigureMockMvc
 public class CandidateControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -41,6 +42,12 @@ public class CandidateControllerTest {
     
     @InjectMocks
     private CandidateController candidateController;
+    
+    @MockBean
+    private CandidateAssembler candidateAssembler;
+    
+    @MockBean
+    PasswordEncoder encoder;
     
     ObjectMapper objectMapper = new ObjectMapper();
     
@@ -64,6 +71,7 @@ public class CandidateControllerTest {
                 .setPassword("bobbyreeder12");
     }*/
 
+    @WithMockUser("user")
     @Test
     public void getAllCandidatesTest() throws Exception{
         CandidateRequest alice = new CandidateRequest()

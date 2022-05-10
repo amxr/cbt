@@ -1,13 +1,13 @@
 package com.fip.cbt.repository;
 
 import com.fip.cbt.model.Candidate;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,12 +16,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 //@DataJpaTest
 @DataMongoTest
-@RunWith(SpringRunner.class)
+@ExtendWith(MockitoExtension.class)
+//@RunWith(SpringRunner.class)
 public class CandidateRepositoryTest {
     @Autowired
     CandidateRepository candidateRepository;
 
-    @Before
+    @BeforeEach
     public void setUp(){
         Candidate alice = new Candidate().setFirstName("Alice")
                 .setLastName("Alex")
@@ -64,7 +65,7 @@ public class CandidateRepositoryTest {
 
         assertThat(doesNotExist).isEmpty();
     }
-    @After
+    @AfterEach
     public void tearDown(){
         candidateRepository.deleteAll();
     }
