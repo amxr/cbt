@@ -29,12 +29,7 @@ public class Candidate {
 
     @DBRef
     private List<Role> roles;
-
-//    @ManyToMany
-//    @JoinTable(
-//            name="test",
-//            joinColumns = @JoinColumn(name="test_id")
-//    )
+    
     @DBRef
-    private Set<Test> testsTaken;
+    private Set<Exam> testsTaken;
 }
