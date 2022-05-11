@@ -14,7 +14,7 @@ public class NewUserRequest {
     private String name;
 
     @NotBlank(message = "email cannot be empty.")
-    @Pattern(regexp = "^(.+)@(\\S+)$")
+    @Pattern(regexp = "^(.+)@(\\S+)$", message = "Incorrect email format")
     private String email;
 
     @NotBlank(message = "password cannot be blank!")

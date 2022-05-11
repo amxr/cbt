@@ -16,7 +16,6 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class ExamRequest {
 
     @NotBlank(message = "Exam number cannot be blank!")

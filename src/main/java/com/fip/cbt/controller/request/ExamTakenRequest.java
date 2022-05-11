@@ -1,6 +1,7 @@
 package com.fip.cbt.controller.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fip.cbt.model.QuestionResponse;
@@ -10,7 +11,9 @@ import lombok.experimental.Accessors;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -18,19 +21,11 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class ExamTakenRequest {
-    
-    @NotBlank(message = "Username cannot be blank!")
-    private String username;
-    
-    @NotBlank(message = "ExamId cannot be blank!")
+    @NotBlank(message = "Exam id cannot be blank!")
     private String examId;
+
+    @NotNull(message = "must include time user started exam.")
+    private LocalDateTime userStartTime;
     
-    private Set<@Valid QuestionResponse> responseSet;
-    
-    private boolean isPassed;
-    
-    @Min(1)
-    private int totalPoints;
-    
-    private LocalDateTime submissionDate;
+    private List<@Valid QuestionResponse> responses;
 }

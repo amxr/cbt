@@ -1,4 +1,4 @@
-package com.fip.cbt.service;
+package com.fip.cbt.service.impl;
 
 import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.controller.request.UpdateExamRequest;
@@ -7,6 +7,7 @@ import com.fip.cbt.exception.ResourceNotFoundException;
 import com.fip.cbt.mapper.ExamMapper;
 import com.fip.cbt.model.Exam;
 import com.fip.cbt.repository.ExamRepository;
+import com.fip.cbt.service.ExamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

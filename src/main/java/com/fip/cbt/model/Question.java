@@ -1,6 +1,7 @@
 package com.fip.cbt.model;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -13,13 +14,9 @@ import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Data
-@SuperBuilder
 @Accessors(chain = true)
 public class Question {
-    
-    @Id
-    private String id;
-    
+
     @NotBlank(message = "Question text cannot be blank!")
     private String text;
 
