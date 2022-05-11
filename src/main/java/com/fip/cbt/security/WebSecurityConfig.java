@@ -1,8 +1,9 @@
 package com.fip.cbt.security;
 
 import com.fip.cbt.model.Role;
-import com.fip.cbt.service.UserService;
+import com.fip.cbt.service.impl.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -10,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
@@ -24,6 +26,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
+    private String URI = "/api/v1/exam";
+
     @Override
     protected void configure(HttpSecurity http) throws Exception{
         http.httpBasic()
@@ -32,6 +36,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable().headers().frameOptions().disable()
                 .and()
                 .authorizeRequests()
+                .antMatchers(HttpMethod.POST, URI + "/taken").hasAuthority(Role.CANDIDATE.toString())
+                .antMatchers(HttpMethod.GET, URI + "/taken/**").hasAuthority(Role.CANDIDATE.toString())
                 .antMatchers("/api/v1/exam/**").hasAuthority(Role.ADMINISTRATOR.toString())
                 .antMatchers(HttpMethod.POST, "/api/v1/auth/user").permitAll()
                 .antMatchers("/actuator/**").permitAll()

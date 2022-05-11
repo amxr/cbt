@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Document("testcollection")
+@Document("examscollection")
 @Data
 @Accessors(chain = true)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)

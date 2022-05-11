@@ -1,10 +1,9 @@
-package com.fip.cbt.service;
+package com.fip.cbt.service.impl;
 
 import com.fip.cbt.controller.request.NewUserRequest;
 import com.fip.cbt.controller.request.UserLoginRequest;
 import com.fip.cbt.dto.UserDto;
 import com.fip.cbt.dto.mapper.UserMapper;
-import com.fip.cbt.model.Role;
 import com.fip.cbt.model.User;
 import com.fip.cbt.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -54,5 +56,13 @@ public class UserService implements UserDetailsService {
         }
 
         return mapper.toUserDto(user);
+    }
+
+    public List<UserDto> getAll(UserDetails userDetails) {
+        List<User> users = userRepository.findAll();
+
+        return users.stream()
+                .map(mapper::toUserDto)
+                .collect(Collectors.toList());
     }
 }
