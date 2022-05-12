@@ -84,12 +84,11 @@ public class ExamServiceImpl implements ExamService {
                         () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found.")
                 );
 
-        Set<User> candidates = addCandidatesRequest.getCandidates()
-                .stream().map(r -> userRepository.findUserByEmail(r)
-                        .orElseThrow(() -> new ResourceNotFoundException("Error adding the candidates for exam")))
-                .collect(Collectors.toSet());
-
-        exam.getCandidates().addAll(candidates);
+        for(String s: addCandidatesRequest.getCandidates()){
+            User user = userRepository.findUserByEmail(s)
+                    .orElseThrow(() -> new ResourceNotFoundException("Error adding the candidates for exam"));
+            exam.getCandidates().add(user);
+        }
 
         return examRepository.save(exam);
     }
