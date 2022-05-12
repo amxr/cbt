@@ -7,8 +7,12 @@ import com.fip.cbt.CbtApplication;
 import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.model.Exam;
 import com.fip.cbt.model.Question;
+import com.fip.cbt.model.Role;
+import com.fip.cbt.model.User;
 import com.fip.cbt.repository.ExamRepository;
+import com.fip.cbt.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -20,7 +24,9 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -35,12 +41,29 @@ class ExamControllerTest {
 
     @Autowired
     private ExamRepository examRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     private final String URI = "/api/v1/exam";
 
+    @BeforeEach
+    void setUp(){
+        User alice = new User().setName("Alice Alex")
+                               .setEmail("aalex@cbt.com")
+                               .setPassword("aliceAlex123")
+                               .setRole(Role.CANDIDATE);
+        User bob = new User().setName("Robert Reed")
+                             .setEmail("bobreed@cbt.com")
+                             .setPassword("bobbyreeder12")
+                             .setRole(Role.CANDIDATE);
+        userRepository.saveAll(List.of(alice, bob));
+    }
+    
     @AfterEach
     void tearDown() {
         examRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
@@ -208,7 +231,7 @@ class ExamControllerTest {
                 .setOptions(List.of("Hello", "Me", "You", "Him"))
                 .setAnswer("Me");
 
-        List<Question> questions = new ArrayList<>(getTestQuestions());
+        List<Question> questions = new ArrayList<>(getExamQuestions());
         questions.add(newQ);
         exam
                 .setExamNumber("A202")
@@ -236,7 +259,7 @@ class ExamControllerTest {
         assertNotEquals(updatedExam.isTimed(), newExam.isTimed());
     }
 
-    private List<Question> getTestQuestions(){
+    private List<Question> getExamQuestions(){
         return List.of(
                 new Question()
                         .setText("How are you?")
@@ -266,7 +289,13 @@ class ExamControllerTest {
                 .setStart(LocalDateTime.of(1992, 12, 12, 12, 0))
                 .setDuration(5000)
                 .setTimed(true)
-                .setQuestions(getTestQuestions());
+                .setQuestions(getExamQuestions())
+                .setCandidates(new HashSet<>(){
+                    {
+                        add("aalex@cbt.com");
+                        add("bobreed@cbt.com");
+                    }
+                });
     }
 
     private String mapToJson(Object obj) throws JsonProcessingException {
