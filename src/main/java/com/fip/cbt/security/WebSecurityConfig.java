@@ -34,13 +34,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception{
         http
-                .cors().configurationSource(request -> {
-                    CorsConfiguration cors = new CorsConfiguration();
-                    cors.setAllowedOrigins(List.of("https://morning-gorge-09623.herokuapp.com/"));
-                    cors.setAllowedMethods(List.of("GET","POST", "PUT", "DELETE", "OPTIONS"));
-                    cors.setAllowedHeaders(List.of("*"));
-                    return cors;
-                }).and()
                 .httpBasic()
                 .authenticationEntryPoint(restAuthenticationEntryPoint)
                 .and()
