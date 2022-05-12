@@ -12,6 +12,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Accessors(chain = true)
@@ -44,6 +45,9 @@ public class ExamRequest {
     @NotNull(message = "timed cannot be empty")
     @JsonProperty("timed")
     private boolean isTimed;
+
+    @JsonProperty("candidate_ids")
+    Set<String> candidates;
 
     @NotEmpty(message = "Questions cannot be empty!")
     private List<@Valid Question> questions;

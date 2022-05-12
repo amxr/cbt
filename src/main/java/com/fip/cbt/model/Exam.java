@@ -1,5 +1,6 @@
 package com.fip.cbt.model;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -12,6 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Document("examscollection")
 @Data
@@ -28,6 +30,8 @@ public class Exam {
     private String description;
     private String instructions;
     private LocalDateTime start;
+    @JsonIncludeProperties("id")
+    private Set<User> candidates;
     private int duration;
     @JsonProperty("timed")
     private boolean isTimed;

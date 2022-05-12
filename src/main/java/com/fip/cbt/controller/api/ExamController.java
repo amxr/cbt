@@ -1,5 +1,6 @@
 package com.fip.cbt.controller.api;
 
+import com.fip.cbt.controller.request.AddCandidatesRequest;
 import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.controller.request.UpdateExamRequest;
 import com.fip.cbt.model.Exam;
@@ -51,5 +52,11 @@ public class ExamController {
     @PutMapping
     public Exam update(@Valid @RequestBody UpdateExamRequest updateExamRequest){
         return examService.update(updateExamRequest);
+    }
+
+    @Operation(summary = "This is used to add candidates for the exam")
+    @PatchMapping("/{examNumber}")
+    public Exam addCandidates(@PathVariable String examNumber, @RequestBody AddCandidatesRequest addCandidatesRequest){
+        return examService.addCandidates(examNumber, addCandidatesRequest);
     }
 }
