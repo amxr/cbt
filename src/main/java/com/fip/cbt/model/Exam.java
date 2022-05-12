@@ -30,7 +30,7 @@ public class Exam {
     private String description;
     private String instructions;
     private LocalDateTime start;
-    @JsonIncludeProperties("id")
+    @JsonIncludeProperties({"id", "email", "name"})
     private Set<User> candidates;
     private int duration;
     @JsonProperty("timed")
