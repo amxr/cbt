@@ -23,6 +23,7 @@ public class DataLoader implements ApplicationRunner {
                 .setName("Admin")
                 .setEmail("admin@cbt.com")
                 .setPassword(encoder.encode("administrator"))
+                .setEnabled(true)
                 .setRole(Role.ADMINISTRATOR);
 
         if(!userRepository.findUserByEmail(initialUser.getUsername()).isPresent()){
