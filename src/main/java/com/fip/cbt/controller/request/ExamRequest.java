@@ -46,7 +46,7 @@ public class ExamRequest {
     @JsonProperty("timed")
     private boolean isTimed;
 
-    @JsonProperty("candidate_ids")
+    @JsonProperty("candidate_emails")
     Set<String> candidates;
 
     @NotEmpty(message = "Questions cannot be empty!")

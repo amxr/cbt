@@ -12,5 +12,6 @@ import java.util.Set;
 @Accessors(chain = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AddCandidatesRequest {
+    @JsonProperty("candidate_emails")
     Set<String> candidates;
 }
