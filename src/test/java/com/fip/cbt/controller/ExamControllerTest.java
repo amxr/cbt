@@ -10,6 +10,7 @@ import com.fip.cbt.model.Question;
 import com.fip.cbt.model.Role;
 import com.fip.cbt.model.User;
 import com.fip.cbt.repository.ExamRepository;
+import com.fip.cbt.repository.ExamRepositoryTest;
 import com.fip.cbt.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +27,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -173,6 +173,7 @@ class ExamControllerTest {
     @Test
     @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
     void deleteExamTest() throws Exception{
+        //TODO: Review this test
         ExamRequest newExam = getExam();
         mockMvc.perform(delete(URI+"/"+newExam.getExamNumber()))
                 .andExpect(status().isNotFound())

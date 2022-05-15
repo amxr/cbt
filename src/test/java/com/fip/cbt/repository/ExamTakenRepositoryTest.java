@@ -1,94 +1,290 @@
-//package com.fip.cbt.repository;
-//
-//import com.fip.cbt.model.QuestionResponse;
-//import com.fip.cbt.model.ExamTaken;
-//import org.junit.jupiter.api.AfterEach;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-//
-//import java.time.LocalDateTime;
-//import java.util.*;
-//
-//import static org.assertj.core.api.Assertions.assertThat;
-//
-//@DataMongoTest
-//@ExtendWith(MockitoExtension.class)
-//public class ExamTakenRepositoryTest {
-//    @Autowired
-//    ExamTakenRepository examTakenRepository;
-//
-//    @BeforeEach
-//    public void setUp(){
-//        ExamTaken ExamTakenHistory = new ExamTaken()
-//                .setExamId("hist101")
-//                .setUsername("aalex")
-//                .setTotalPoints(100)
-//                .setSubmissionDate(LocalDateTime.of(2022,5,10,20,35))
-//                .setResponses(getResponses());
-//
-//        ExamTaken ExamTakenGov = new ExamTaken()
-//                .setExamId("gov101")
-//                .setUsername("bobbyr")
-//                .setTotalPoints(100)
-//                .setSubmissionDate(LocalDateTime.of(2022,5,10,20,35))
-//                .setResponses(getResponses());
-//        examTakenRepository.saveAll(List.of(ExamTakenHistory,ExamTakenGov));
-//    }
-//
-//    @Test
-//    public void createAndDeleteTestsTaken(){
-//
-//        List<ExamTaken> takenTests = examTakenRepository.findAll();
-//
-//        //then
-//        assertThat(takenTests.size()).isEqualTo(2);
-//
-//        //when
-//        examTakenRepository.deleteAll();
-//        List<ExamTaken> tests1 = examTakenRepository.findAll();
-//
-//        //then
-//        assertThat(tests1.size()).isEqualTo(0);
-//    }
-//    @Test
-//    public void findByUsernameTest(){
-//        assertThat(examTakenRepository.count()).isEqualTo(2);
-//
-//        Optional<ExamTaken> testAlice = examTakenRepository.findByCandidate("aalex");
-//
-//        assertThat(testAlice.get().getUsername()).isEqualTo("aalex");
-//
-//        Optional<ExamTaken> doesNotExist = examTakenRepository.findByCandidate("alex");
-//
-//        assertThat(doesNotExist).isEmpty();
-//    }
-//    @AfterEach
-//    public void tearDown(){
-//        examTakenRepository.deleteAll();
-//    }
-//
-//    private List<QuestionResponse> getResponses(){
-//        return List.of(
-//                new QuestionResponse()
-//                        .setUserChoice("1964")
-//                        .setCorrect(false)
-//                        .setText("What year did Nigeria get its independence?")
-//                        .setAnswer("1960")
-//                        .setOptions(List.of("1959", "1960", "1961", "1962"))
-//                        .setPoint(2.0),
-//
-//                new QuestionResponse()
-//                        .setUserChoice("1964")
-//                        .setCorrect(true)
-//                        .setText("What year did Nigeria change its currency?")
-//                        .setAnswer("1964")
-//                        .setOptions(List.of("1961", "1962", "1963", "1964"))
-//                        .setPoint(1.5)
-//        );
-//    }
-//
-//}
+package com.fip.cbt.repository;
+
+import com.fip.cbt.controller.request.ExamRequest;
+import com.fip.cbt.controller.request.ExamTakenRequest;
+import com.fip.cbt.mapper.ExamMapper;
+import com.fip.cbt.model.*;
+import org.bson.types.ObjectId;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
+@DataMongoTest
+@ExtendWith(MockitoExtension.class)
+public class ExamTakenRepositoryTest {
+    @Autowired
+    ExamTakenRepository examTakenRepository;
+    
+    @Autowired
+    UserRepository userRepository;
+    
+    @Autowired
+    ExamRepository examRepository;
+    
+    @AfterEach
+    void tearDown(){
+        examTakenRepository.deleteAll();
+    }
+    
+    @BeforeEach
+    void setUp(){
+        Exam examN101 = ExamMapper.toExam(getExam("N101", List.of("aalex@cbt.com")));
+        Exam examN102 = ExamMapper.toExam(getExam("N102",List.of("aalex@cbt.com","bobreed@cbt.com")));
+        examRepository.saveAll(List.of(examN101, examN102));
+        
+        ExamTaken examTaken1 = examTakenRepository.save(
+                new ExamTaken()
+                        .setExam(examN101)
+                        .setResponses(new ArrayList<>(){{
+                            add(new QuestionResponse().setUserChoice("Me")
+                                                      .setText("How are you?")
+                                                      .setAnswer("Me")
+                                                      .setOptions(List.of("Hello", "Me", "You", "Him"))
+                                                      .setPoint(5)
+                            );
+                            add(new QuestionResponse().setUserChoice("Him")
+                                                      .setText("Who is she?")
+                                                      .setAnswer("Her")
+                                                      .setOptions(List.of("Her", "Him", "They", "Them"))
+                                                      .setPoint(3)
+                            );
+                            add(new QuestionResponse().setUserChoice("it")
+                                                      .setText("Who is he?")
+                                                      .setAnswer("It")
+                                                      .setOptions(List.of("You", "Me", "Them", "It"))
+                                                      .setPoint(2)
+                            );
+                        }})
+                        .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0)));
+        ExamTaken examTaken2 = examTakenRepository.save(
+                new ExamTaken()
+                        .setExam(examN102)
+                        .setResponses(new ArrayList<>(){{
+                            add(new QuestionResponse().setUserChoice("Me")
+                                                      .setText("How are you?")
+                                                      .setAnswer("Me")
+                                                      .setOptions(List.of("Hello", "Me", "You", "Him"))
+                                                      .setPoint(5)
+                            );
+                            add(new QuestionResponse().setUserChoice("Him")
+                                                      .setText("Who is she?")
+                                                      .setAnswer("Her")
+                                                      .setOptions(List.of("Her", "Him", "They", "Them"))
+                                                      .setPoint(3)
+                            );
+                            add(new QuestionResponse().setUserChoice("it")
+                                                      .setText("Who is he?")
+                                                      .setAnswer("It")
+                                                      .setOptions(List.of("You", "Me", "Them", "It"))
+                                                      .setPoint(2)
+                            );
+                        }})
+                        .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0)));
+        
+    }
+    
+    @Test
+    public void findAllByUserIdTest(){
+        User alice = userRepository.save(
+                new User().setName("Alice Alex")
+                          .setEmail("aalex@cbt.com")
+                          .setPassword("aliceAlex123")
+                          .setRole(Role.CANDIDATE)
+        );
+        List<ExamTaken> examsByUser = examTakenRepository.findAllByUser(new ObjectId(alice.getId()));
+        assertThat(examsByUser.size()).isEqualTo(2);
+    
+        User john = userRepository.save(
+                new User().setName("John Doe")
+                          .setEmail("jdoe@cbt.com")
+                          .setPassword("johndoe123")
+                          .setRole(Role.CANDIDATE)
+        );
+        List<ExamTaken> examsByNewUser = examTakenRepository.findAllByUser(new ObjectId(john.getId()));
+        assertThat(examsByUser.size()).isEqualTo(0);
+    }
+    
+    @Test
+    public void findAllByExamTest(){
+        Exam examN103 = ExamMapper.toExam(getExam("N101",List.of("aalex@cbt.com","bobreed@cbt.com")));
+        Exam examN104 = ExamMapper.toExam(getExam("N102",List.of("aalex@cbt.com","bobreed@cbt.com")));
+        examRepository.saveAll(List.of(examN103, examN104));
+    
+        examTakenRepository.saveAll(List.of(
+                new ExamTaken()
+                        .setExam(examN103)
+                        .setResponses(new ArrayList<>(){{
+                            add(new QuestionResponse().setUserChoice("Me")
+                                                      .setText("How are you?")
+                                                      .setAnswer("Me")
+                                                      .setOptions(List.of("Hello", "Me", "You", "Him"))
+                                                      .setPoint(5)
+                            );
+                            add(new QuestionResponse().setUserChoice("Him")
+                                                      .setText("Who is she?")
+                                                      .setAnswer("Her")
+                                                      .setOptions(List.of("Her", "Him", "They", "Them"))
+                                                      .setPoint(3)
+                            );
+                            add(new QuestionResponse().setUserChoice("it")
+                                                      .setText("Who is he?")
+                                                      .setAnswer("It")
+                                                      .setOptions(List.of("You", "Me", "Them", "It"))
+                                                      .setPoint(2)
+                            );
+                        }})
+                        .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0)),
+                new ExamTaken()
+                        .setExam(examN104)
+                        .setResponses(new ArrayList<>(){{
+                            add(new QuestionResponse().setUserChoice("Me")
+                                                      .setText("How are you?")
+                                                      .setAnswer("Me")
+                                                      .setOptions(List.of("Hello", "Me", "You", "Him"))
+                                                      .setPoint(5)
+                            );
+                            add(new QuestionResponse().setUserChoice("Him")
+                                                      .setText("Who is she?")
+                                                      .setAnswer("Her")
+                                                      .setOptions(List.of("Her", "Him", "They", "Them"))
+                                                      .setPoint(3)
+                            );
+                            add(new QuestionResponse().setUserChoice("it")
+                                                      .setText("Who is he?")
+                                                      .setAnswer("It")
+                                                      .setOptions(List.of("You", "Me", "Them", "It"))
+                                                      .setPoint(2)
+                            );
+                        }})
+                        .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0))
+        ));
+        
+        List<ExamTaken> examsByUser = examTakenRepository.findAllByExam(examN103);
+        assertThat(examsByUser.size()).isEqualTo(1);
+    
+        Exam nonExistentExam = ExamMapper.toExam(getExam("N101",List.of("aalex@cbt.com","bobreed@cbt.com")));
+        List<ExamTaken> examsByNonExistentExam = examTakenRepository.findAllByExam(nonExistentExam);
+        assertThat(examsByUser.size()).isEqualTo(0);
+    }
+    @Test
+    public void findByUserIdAndExamIdTest(){
+        Exam examN103 = ExamMapper.toExam(getExam("N101",List.of("aalex@cbt.com","bobreed@cbt.com")));
+        examRepository.save(examN103);
+        
+        User alice = userRepository.save(
+                new User().setName("Alice Alex")
+                          .setEmail("aalex@cbt.com")
+                          .setPassword("aliceAlex123")
+                          .setRole(Role.CANDIDATE)
+        );
+        
+        examTakenRepository.save(
+                new ExamTaken()
+                        .setExam(examN103)
+                        .setResponses(new ArrayList<>(){{
+                            add(new QuestionResponse().setUserChoice("Me")
+                                                      .setText("How are you?")
+                                                      .setAnswer("Me")
+                                                      .setOptions(List.of("Hello", "Me", "You", "Him"))
+                                                      .setPoint(5)
+                            );
+                            add(new QuestionResponse().setUserChoice("Him")
+                                                      .setText("Who is she?")
+                                                      .setAnswer("Her")
+                                                      .setOptions(List.of("Her", "Him", "They", "Them"))
+                                                      .setPoint(3)
+                            );
+                            add(new QuestionResponse().setUserChoice("it")
+                                                      .setText("Who is he?")
+                                                      .setAnswer("It")
+                                                      .setOptions(List.of("You", "Me", "Them", "It"))
+                                                      .setPoint(2)
+                            );
+                        }})
+                        .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0))
+        );
+        
+        Optional<ExamTaken> examsByUser = examTakenRepository.findOneByUserIdAndExamId(alice, examN103);
+        assertThat(examsByUser).isPresent();
+    
+        Exam nonExistentExam = ExamMapper.toExam(getExam("N101",List.of("aalex@cbt.com","bobreed@cbt.com")));
+        Optional<ExamTaken> examsByNonExistentExam = examTakenRepository.findOneByUserIdAndExamId(alice, nonExistentExam);
+        assertThat(examsByNonExistentExam).isEmpty();
+    }
+    
+    private ExamRequest getExam(String examNumber, List<String> candidates){
+        return new ExamRequest()
+                .setExamNumber(examNumber)
+                .setName("Nexam")
+                .setPassMark(3)
+                .setDescription("Quisque porta volutpat erat. Quisque erat eros, viverra eget, congue eget, semper rutrum, nulla. Nunc purus.")
+                .setInstructions("Duis consequat dui nec nisi volutpat eleifend. Donec ut dolor. Morbi vel lectus in quam fringilla rhoncus. Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci.")
+                .setStart(LocalDateTime.of(1992, 12, 12, 12, 0))
+                .setDuration(5000)
+                .setTimed(true)
+                .setQuestions(getExamQuestions())
+                .setCandidates(new HashSet<>(){
+                    {
+                        //addAll(candidateEmails);
+                        //add("aalex@cbt.com");
+                        //add("bobreed@cbt.com");
+                    }
+                });
+    }
+    private List<Question> getExamQuestions(){
+        return List.of(
+                new Question()
+                        .setText("How are you?")
+                        .setPoint(5)
+                        .setOptions(List.of("Hello", "Me", "You", "Him"))
+                        .setAnswer("Me"),
+                new Question()
+                        .setText("Who is she?")
+                        .setPoint(3)
+                        .setOptions(List.of("Her", "Him", "They", "Them"))
+                        .setAnswer("Her"),
+                new Question()
+                        .setText("Who is he?")
+                        .setPoint(2)
+                        .setOptions(List.of("You", "Me", "Them", "It"))
+                        .setAnswer("It")
+        );
+    }
+    private ExamTakenRequest getExamTaken(String examNumber){
+        return new ExamTakenRequest()
+                .setExamId(examNumber)
+                .setResponses(new ArrayList<>(){{
+                    add(new QuestionResponse().setUserChoice("Me")
+                                              .setText("How are you?")
+                                              .setAnswer("Me")
+                                              .setOptions(List.of("Hello", "Me", "You", "Him"))
+                                              .setPoint(5)
+                    );
+                    add(new QuestionResponse().setUserChoice("Him")
+                                              .setText("Who is she?")
+                                              .setAnswer("Her")
+                                              .setOptions(List.of("Her", "Him", "They", "Them"))
+                                              .setPoint(3)
+                    );
+                    add(new QuestionResponse().setUserChoice("it")
+                                              .setText("Who is he?")
+                                              .setAnswer("It")
+                                              .setOptions(List.of("You", "Me", "Them", "It"))
+                                              .setPoint(2)
+                    );
+                }})
+                .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0));
+    }
+}
