@@ -144,6 +144,7 @@ public class ExamTakenControllerTest {
     //@WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
     @WithMockUser(username = "admin@cbt.com", password = "administrator", authorities = {"ADMINISTRATOR"})
     public void getAllWithUserParameterTest() throws Exception{
+        //Not working
         Exam exam1 = examRepository.findExamByExamNumber("N101")
                                   .orElseThrow(()->new ResourceNotFoundException("No such exam"));
         Exam exam2 = examRepository.findExamByExamNumber("N102")
@@ -330,6 +331,7 @@ public class ExamTakenControllerTest {
     @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
     //@WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
     public void deleteTest() throws Exception {
+        //Not working
         Exam exam1 = examRepository.findExamByExamNumber("N101")
                                    .orElseThrow(()->new ResourceNotFoundException("No such exam"));
     

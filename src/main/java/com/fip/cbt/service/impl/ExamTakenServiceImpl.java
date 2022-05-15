@@ -1,6 +1,7 @@
 package com.fip.cbt.service.impl;
 
 import com.fip.cbt.controller.request.ExamTakenRequest;
+import com.fip.cbt.exception.ResourceAlreadyExistsException;
 import com.fip.cbt.exception.ResourceNotFoundException;
 import com.fip.cbt.mapper.ExamTakenMapper;
 import com.fip.cbt.model.*;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -36,12 +38,23 @@ public class ExamTakenServiceImpl implements ExamTakenService {
     
     @Override
     public ExamTaken add(ExamTakenRequest examTakenRequest, UserDetails userDetails) {
-        //TODO: Search by ID
+        //TODO: Search by ID [DONE]
+        //TODO: Refactor the following lines
         Exam exam = examRepository.findById(examTakenRequest.getExamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
-
-        User user = (User) userDetails;
-
+//        Exam exam = examRepository.findExamByExamNumber(examTakenRequest.getExamId())
+//                .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
+        
+        User user = userRepository.findUserByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("No such User "+userDetails.getUsername()));
+        
+        if(examTakenRepository.findOneByUserIdAndExamId(user, exam).isPresent()) {
+            //throw new ResourceAlreadyExistsException("User " + userDetails.getUsername() + " has already submitted exam " +
+            //                                                 examTakenRequest.getExamId());
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User can't submit an exam more than once");
+        }
+        //TODO: End of proposed Refactoring
+        
         AtomicReference<Double> totalScore = new AtomicReference<>((double) 0);
         List<QuestionResponse> responses = examTakenRequest.getResponses()
                 .stream().peek(r -> {
@@ -87,16 +100,16 @@ public class ExamTakenServiceImpl implements ExamTakenService {
     
     @Override
     public List<ExamTaken> getAll(String user, String exam, UserDetails userDetails) {
-        User currentUser = (User) userDetails;
+        User currentUser = userRepository.findUserByEmail(userDetails.getUsername())
+                                           .orElseThrow(() -> new ResourceNotFoundException("No such User "+userDetails.getUsername()));
         if(currentUser.getRole().equals(Role.CANDIDATE)){
-            return examTakenRepository.findAllByUser(currentUser);
+            return examTakenRepository.findAllByUserId(currentUser);
         }
-        List<ExamTaken> examTakens = examTakenRepository.findAll();
-        if(!user.equals("")){
-
+        
+        if(!user.equals("")){ //When do we reach here????
             User _user = userRepository.findUserByEmail(user)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist."));
-            return examTakenRepository.findAllByUser(_user);
+            return examTakenRepository.findAllByUserId(_user);
         }
         if(!exam.equals("")){
             Exam _exam = examRepository.findExamByExamNumber(exam)

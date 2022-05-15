@@ -18,11 +18,11 @@ public interface ExamRepository extends MongoRepository<Exam, String> {
    @Query("{name:'?0'}")
     List<Exam> findExamByName(String name);
 
-   @Query("{created:'?0'}")
-    List<Exam> findExamByDate(LocalDateTime created);
+   @Query("{start: ?0}")
+    List<Exam> findExamByDate(LocalDateTime start);
    //TODO: Make query more robust
 
-   @Query("{duration:'?0'}")
+   @Query("{duration: ?0}")
     List<Exam> findExamByDuration(int duration);
 
     long count();
