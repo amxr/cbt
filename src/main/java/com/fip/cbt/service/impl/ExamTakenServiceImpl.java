@@ -33,8 +33,8 @@ public class ExamTakenServiceImpl implements ExamTakenService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    ExamTakenMapper mapper;
+    //@Autowired
+    //ExamTakenMapper mapper;
     
     @Override
     public ExamTaken add(ExamTakenRequest examTakenRequest, UserDetails userDetails) {
@@ -63,7 +63,7 @@ public class ExamTakenServiceImpl implements ExamTakenService {
                 })
                 .collect(Collectors.toList());
 
-        ExamTaken examTaken = mapper.toExamTaken(examTakenRequest)
+        ExamTaken examTaken = ExamTakenMapper.toExamTaken(examTakenRequest)
                         .setUser(user).setExam(exam)
                                 .setResponses(responses)
                                         .setTotalPoints(totalScore.get())
