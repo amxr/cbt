@@ -16,11 +16,12 @@ public interface ExamTakenRepository extends MongoRepository<ExamTaken, String> 
     //@Query("{'user._id': ?0}")
     List<ExamTaken> findAllByUserId(User user);
     
+    //@Query(value = "{'user.id': ?0}")
     //@Query(value = "{'user.id': ?0}", fields = "{'user' : 0}")
-    @Query(value = "{'user.id': ?0}")
-    List<ExamTaken> findAllByUser(ObjectId userId);
+    //@Query(value = "{'user': {$elemMatch: { 'user.id': ?0 }}")
+    //List<ExamTaken> findByUserId(String userId);
     
-    @Query("{exam:'?0'}")
+    //@Query("{exam: ?0}")
     List<ExamTaken> findAllByExam(Exam exam);
     
     //@Query("{'user$.id': ?0, 'exam$id': ?1 }")
