@@ -8,7 +8,7 @@ import com.fip.cbt.controller.request.UserLoginRequest;
 import com.fip.cbt.model.Role;
 import com.fip.cbt.model.User;
 import com.fip.cbt.repository.UserRepository;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,7 +34,7 @@ public class UserControllerTest {
     
     private final String URI = "/api/v1/auth";
     
-    @AfterEach
+    @BeforeEach
     void tearDown() {
         userRepository.deleteAll();
     }
@@ -140,7 +140,7 @@ public class UserControllerTest {
     
         String content = result.getResponse().getContentAsString();
         User[] users = mapFromJson(content, User[].class);
-        assertEquals(3, users.length); //Includes `Admin` user
+        assertEquals(2, users.length);
     }
     
     private String mapToJson(Object obj) throws JsonProcessingException {
