@@ -12,13 +12,12 @@ import com.fip.cbt.model.*;
 import com.fip.cbt.repository.ExamRepository;
 import com.fip.cbt.repository.ExamTakenRepository;
 import com.fip.cbt.repository.UserRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -35,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {CbtApplication.class})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ExamTakenControllerTest {
     
     @Autowired
@@ -48,30 +48,42 @@ public class ExamTakenControllerTest {
     
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    PasswordEncoder encoder;
     
     private final String URI = "/api/v1/exam/taken";
-    
-    @BeforeEach
-    void setUp(){
+
+    @BeforeAll
+    void beforeAll(){
+        userRepository.deleteAll();
+        User admin = new User()
+                .setName("Admin")
+                .setEmail("admin@cbt.com")
+                .setPassword(encoder.encode("administrator"))
+                .setEnabled(true)
+                .setRole(Role.ADMINISTRATOR);
         User alice = new User().setName("Alice Alex")
-                               .setEmail("aalex@cbt.com")
-                               .setPassword("aliceAlex123")
-                               .setRole(Role.CANDIDATE);
-        User bob = new User().setName("Robert Reed")
-                             .setEmail("bobreed@cbt.com")
-                             .setPassword("bobbyreeder1");
-        userRepository.saveAll(List.of(alice,bob));
-        
+                .setEmail("aalex@cbt.com")
+                .setPassword(encoder.encode("aliceAlex123"))
+                .setEnabled(true)
+                .setRole(Role.CANDIDATE);
+        userRepository.saveAll(List.of(alice,admin));
+
         Exam examN101 = ExamMapper.toExam(getExam("N101",List.of("aalex@cbt.com")));
-        Exam examN102 = ExamMapper.toExam(getExam("N102",List.of("aalex@cbt.com","bobreed@cbt.com")));
+        Exam examN102 = ExamMapper.toExam(getExam("N102",List.of("aalex@cbt.com")));
         examRepository.saveAll(List.of(examN101,examN102));
     }
-    
+
     @AfterEach
     void tearDown(){
+        examTakenRepository.deleteAll();
+    }
+
+    @AfterAll
+    void afterAll(){
         examRepository.deleteAll();
         userRepository.deleteAll();
-        examTakenRepository.deleteAll();
     }
     
     @Test
@@ -149,10 +161,13 @@ public class ExamTakenControllerTest {
                                   .orElseThrow(()->new ResourceNotFoundException("No such exam"));
         Exam exam2 = examRepository.findExamByExamNumber("N102")
                                   .orElseThrow(()->new ResourceNotFoundException("No such exam"));
+
+        User alice = userRepository.findUserByEmail("aalex@cbt.com").orElseThrow();
         
         ExamTaken examTaken1 = examTakenRepository.save(
                 new ExamTaken()
                         .setExam(exam1)
+                        .setUser(alice)
                         .setResponses(new ArrayList<>(){{
                             add(new QuestionResponse().setUserChoice("Me")
                                                       .setText("How are you?")
@@ -177,6 +192,7 @@ public class ExamTakenControllerTest {
         ExamTaken examTaken2 = examTakenRepository.save(
                 new ExamTaken()
                         .setExam(exam2)
+                        .setUser(alice)
                         .setResponses(new ArrayList<>(){{
                             add(new QuestionResponse().setUserChoice("Me")
                                                       .setText("How are you?")
@@ -198,22 +214,6 @@ public class ExamTakenControllerTest {
                             );
                         }})
                         .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0)));
-    
-        /*ExamTakenRequest examTakenRequest1 = getExamTaken(exam1.getId());
-        ExamTakenRequest examTakenRequest2 = getExamTaken(exam2.getId());
-        
-        mockMvc.perform(
-                       post(URI)
-                               .contentType(MediaType.APPLICATION_JSON)
-                               .content(mapToJson(examTakenRequest1))
-                               .accept(MediaType.APPLICATION_JSON))
-               .andReturn();
-        mockMvc.perform(
-                       post(URI)
-                               .contentType(MediaType.APPLICATION_JSON)
-                               .content(mapToJson(examTakenRequest2))
-                               .accept(MediaType.APPLICATION_JSON))
-               .andReturn();*/
     
         MvcResult result = mockMvc.perform(
                 get(URI)
@@ -359,37 +359,17 @@ public class ExamTakenControllerTest {
                     );
                 }})
                         .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0)));
-    
-        /*//submit exam
-        MvcResult submitExam = mockMvc.perform(
-                                          post(URI)
-                                                  .contentType(MediaType.APPLICATION_JSON)
-                                                  .content(mapToJson(examTakenRequest))
-                                                  .accept(MediaType.APPLICATION_JSON))
-                                  .andExpect(status().isCreated())
-                                  .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                                  .andExpect(jsonPath("$.id").isString())
-                                  .andExpect(jsonPath("$.exam.id").value(examTakenRequest.getExamId()))
-                                  .andReturn();
-    
-        //parse exam
-        String content = submitExam.getResponse().getContentAsString();
-        ExamTaken submittedExamTaken = mapFromJson(content, ExamTaken.class);*/
-    
-        //then test 'delete' function
+
         mockMvc.perform(
                       delete(URI+"/"+ examTaken.getId()))
-              .andExpect(status().isOk())
-              .andReturn();
+              .andExpect(status().isOk());
     
-        //mockwithuser
-        MvcResult result = mockMvc.perform(get(URI+"/"+ examTaken.getId()))
+
+         mockMvc.perform(get(URI+"/"+ examTaken.getId()))
                                   .andExpect(status().isNotFound())
-                                  .andReturn();
-    
-        String resultContent = result.getResponse().getContentAsString();
-        ExamTaken returnedExamTaken = mapFromJson(resultContent, ExamTaken.class);
-        assertEquals(returnedExamTaken.getExam().getExamNumber(), examTaken.getExam().getExamNumber());
+                .andExpect(jsonPath("$.error_message").value("Exam with number " + examTaken.getId() + " not found."))
+                .andExpect(jsonPath("$.error_code").value("NOT_FOUND"));
+
     }
     
     private String mapToJson(Object obj) throws JsonProcessingException {
