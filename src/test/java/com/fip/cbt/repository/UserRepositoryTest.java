@@ -3,9 +3,7 @@ package com.fip.cbt.repository;
 import com.fip.cbt.model.Exam;
 import com.fip.cbt.model.Role;
 import com.fip.cbt.model.User;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +16,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataMongoTest
 @ExtendWith(MockitoExtension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
+
+    @BeforeAll
+    void beforeAll(){
+        userRepository.deleteAll();
+    }
     
     @BeforeEach
     void setUp(){
