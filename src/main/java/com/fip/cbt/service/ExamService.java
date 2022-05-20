@@ -22,4 +22,6 @@ public interface ExamService {
     Exam addCandidates(String examNumber, AddCandidatesRequest addCandidatesRequest);
     
     Exam registerUser(String examNumber, UserDetails userDetails);
+    
+    Exam approveCandidates(String examNumber, AddCandidatesRequest approvedCandidates);
 }

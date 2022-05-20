@@ -107,4 +107,22 @@ public class ExamServiceImpl implements ExamService {
         
         return examRepository.save(exam);
     }
+    
+    public Exam approveCandidates(String examNumber, AddCandidatesRequest approvedCandidates){
+        Exam exam = examRepository.findExamByExamNumber(examNumber)
+                                  .orElseThrow(
+                                          () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found.")
+                                  );
+        Set<User> approvedUsers = approvedCandidates.getCandidates()
+                                                    .stream()
+                                                    .map( r -> {
+                                                        return userRepository.findUserByEmail(r)
+                                                                             .orElseThrow(() -> new ResourceNotFoundException("No such user: "+r));
+                                                          }
+                                                    ).collect(Collectors.toSet());
+        if(!approvedUsers.containsAll(exam.getCandidates())) {
+            exam.setCandidates(approvedUsers);
+        }
+            return exam;
+    }
 }

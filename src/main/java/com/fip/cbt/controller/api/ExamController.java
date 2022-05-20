@@ -62,7 +62,13 @@ public class ExamController {
         return examService.addCandidates(examNumber, addCandidatesRequest);
     }
     
-    @Operation(summary = "This is used to add candidates for the exam")
+    @Operation(summary = "This is used to approve candidates for the exam")
+    @PatchMapping("/{examNumber}/candidates")
+    public Exam approveCandidates(@PathVariable String examNumber, @RequestBody AddCandidatesRequest approvedCandidatesRequest){
+        return examService.approveCandidates(examNumber, approvedCandidatesRequest);
+    }
+    
+    @Operation(summary = "This is used by candidates to register for the exam")
     @PostMapping("/register/{examNumber}")
     public Exam registerUser(@PathVariable String examNumber, @AuthenticationPrincipal UserDetails userDetails){
         return examService.registerUser(examNumber, userDetails);

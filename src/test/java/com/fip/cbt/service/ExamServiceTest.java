@@ -168,6 +168,30 @@ public class ExamServiceTest {
         assertThat(addedCandidatesExam).isNotNull();
     }
     
+    @Test
+    public void approveCandidatesTest(){
+        Exam mockedExam = new Exam().setCandidates(new HashSet<>(){
+            {
+                add(new User());
+                add(new User());
+            }
+        });
+        when(examRepository.findExamByExamNumber(any(String.class))).thenReturn(Optional.of(mockedExam));
+    
+        AddCandidatesRequest approvedCandidates = new AddCandidatesRequest()
+                .setCandidates(new HashSet<>(){
+                    {
+                        add("aalex@cbt.com");
+                        add("bobreed@cbt.com");
+                    }
+                });
+    
+        when(userRepository.findUserByEmail(any(String.class))).thenReturn(Optional.of(new User()));
+    
+        Exam addedCandidatesExam = examService.approveCandidates("examNumber", approvedCandidates);
+        assertThat(addedCandidatesExam).isNotNull();
+    }
+    
     private ExamRequest getExam(String id, List<String> candidateEmails){
         return new ExamRequest()
                 .setExamNumber(id)

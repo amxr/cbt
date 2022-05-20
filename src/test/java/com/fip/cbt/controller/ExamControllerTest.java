@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fip.cbt.CbtApplication;
+import com.fip.cbt.controller.request.AddCandidatesRequest;
 import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.exception.ResourceNotFoundException;
 import com.fip.cbt.model.Exam;
@@ -27,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -289,6 +291,127 @@ class ExamControllerTest {
         Exam exam = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
         assertNotNull(exam);
         assertThat(exam.getCandidates().size()).isEqualTo(3);
+    }
+    
+    @Test
+    @WithMockUser(username = "admin@cbt.com", password = "admin", authorities = {"ADMINISTRATOR"})
+    void addCandidatesTest() throws Exception {
+        User charlie = new User().setName("Charles Cousy")
+                                 .setEmail("ccousy@cbt.com")
+                                 .setPassword("ccousy12")
+                                 .setRole(Role.CANDIDATE);
+        User dave = new User().setName("David Dune")
+                              .setEmail("davedune@cbt.com")
+                              .setPassword("davedune12")
+                              .setRole(Role.CANDIDATE);
+    
+        userRepository.saveAll(List.of(charlie, dave));
+    
+        ExamRequest newExam = getExam();
+        examRepository.save(new Exam()
+                                    .setExamNumber(newExam.getExamNumber())
+                                    .setCandidates(
+                                            newExam.getCandidates().stream()
+                                                   .map(r -> {
+                                                       return userRepository.findUserByEmail(r).orElseThrow(
+                                                               () -> new ResourceNotFoundException("Error adding the candidates for exam"));
+                                                   })
+                                                   .collect(Collectors.toSet())
+                                    ));
+        AddCandidatesRequest addCandidatesRequest = new AddCandidatesRequest()
+                .setCandidates(new HashSet<>(){
+                    {
+                        add("ccousy@cbt.com");
+                        add("davedune@cbt.com");
+                    }
+                });
+        MvcResult result = mockMvc.perform(
+                                          patch(URI+"/"+newExam.getExamNumber())
+                                                  .contentType(MediaType.APPLICATION_JSON)
+                                                  .content(mapToJson(addCandidatesRequest)).param("examNumber", newExam.getExamNumber())
+                                                  .accept(MediaType.APPLICATION_JSON))
+                                  .andReturn();
+        Exam exam = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
+        assertNotNull(exam);
+        assertThat(exam.getCandidates().size()).isEqualTo(4);
+    }
+    
+    @Test
+    @WithMockUser(username = "admin@cbt.com", password = "admin", authorities = {"ADMINISTRATOR"})
+    void approveCandidatesTest() throws Exception {
+        User charlie = new User().setName("Charles Cousy")
+                             .setEmail("ccousy@cbt.com")
+                             .setPassword("ccousy12")
+                             .setRole(Role.CANDIDATE);
+        User dave = new User().setName("David Dune")
+                             .setEmail("davedune@cbt.com")
+                             .setPassword("davedune12")
+                             .setRole(Role.CANDIDATE);
+        
+        userRepository.saveAll(List.of(charlie, dave));
+        
+        ExamRequest newExam = getExam();
+        newExam.setCandidates(new HashSet<>(){
+            {
+                add("aalex@cbt.com");
+                add("bobreed@cbt.com");
+                add("ccousy@cbt.com");
+                add("davedune@cbt.com");
+            }
+        });
+        examRepository.save(new Exam()
+                                    .setExamNumber(newExam.getExamNumber())
+                                    .setCandidates(
+                                            newExam.getCandidates().stream()
+                                                   .map(r -> {
+                                                       return userRepository.findUserByEmail(r).orElseThrow(
+                                                               () -> new ResourceNotFoundException("Error adding the candidates for exam"));
+                                                   })
+                                                    .collect(Collectors.toSet())
+                                    ));
+        AddCandidatesRequest approvedCandidates = new AddCandidatesRequest()
+                .setCandidates(new HashSet<>(){
+                    {
+                        add("aalex@cbt.com");
+                        add("bobreed@cbt.com");
+                    }
+                });
+        MvcResult result = mockMvc.perform(
+                                          patch(URI+"/"+newExam.getExamNumber()+"/candidates")
+                                                  .contentType(MediaType.APPLICATION_JSON)
+                                                  .content(mapToJson(approvedCandidates)).param("examNumber", newExam.getExamNumber())
+                                                  .accept(MediaType.APPLICATION_JSON))
+                                  .andReturn();
+        Exam exam = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
+        assertNotNull(exam);
+        assertThat(exam.getCandidates().size()).isEqualTo(2);
+    }
+    
+    @Test
+    void setContainsTest(){
+        ExamRequest newExam = getExam();
+        Set<String> containedCandidate = new HashSet<>(){
+            {
+                add("aalex@cbt.com");
+            }
+        };
+        assertThat(containedCandidate.equals(newExam.getCandidates())).isFalse();
+
+        Set<String> notContainedCandidate = new HashSet<>(){
+            {
+                add("johndoe@cbt.com");
+            }
+        };
+        assertThat(notContainedCandidate.equals(newExam.getCandidates())).isFalse();
+    
+        Set<String> containsAllCandidates = new HashSet<>(){
+            {
+                add("aalex@cbt.com");
+                add("bobreed@cbt.com");
+            }
+        };
+        assertThat(containsAllCandidates.equals(newExam.getCandidates())).isTrue();
+    
     }
 
     private List<Question> getExamQuestions(){
