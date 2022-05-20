@@ -41,6 +41,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST, URI + "/taken").hasAuthority(Role.CANDIDATE.toString())
+                .antMatchers(HttpMethod.POST, URI + "/register/**").hasAuthority(Role.CANDIDATE.toString())
                 .antMatchers(HttpMethod.GET, URI + "/taken/**").hasAnyAuthority(Role.CANDIDATE.toString(), Role.ADMINISTRATOR.toString())
                 .antMatchers(URI+"/**").hasAuthority(Role.ADMINISTRATOR.toString())
                 .antMatchers(HttpMethod.POST, "/api/v1/auth/user").permitAll()

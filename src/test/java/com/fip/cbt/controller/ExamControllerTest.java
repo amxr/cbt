@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fip.cbt.CbtApplication;
 import com.fip.cbt.controller.request.ExamRequest;
+import com.fip.cbt.exception.ResourceNotFoundException;
 import com.fip.cbt.model.Exam;
 import com.fip.cbt.model.Question;
 import com.fip.cbt.model.Role;
 import com.fip.cbt.model.User;
 import com.fip.cbt.repository.ExamRepository;
-import com.fip.cbt.repository.ExamRepositoryTest;
 import com.fip.cbt.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +27,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -258,6 +260,35 @@ class ExamControllerTest {
         assertNotEquals(updatedExam.getName(), newExam.getName());
         assertNotEquals(updatedExam.getQuestions().size(), newExam.getQuestions().size());
         assertNotEquals(updatedExam.isTimed(), newExam.isTimed());
+    }
+    
+    @Test
+    @WithMockUser(username = "johndoe@cbt.com", password = "johnnydoe", authorities = {"CANDIDATE"})
+    void registerUserTest() throws Exception {
+        ExamRequest newExam = getExam();
+        examRepository.save(new Exam()
+                                    .setExamNumber(newExam.getExamNumber())
+                                    .setCandidates(
+                                            newExam.getCandidates().stream()
+                                                   .map(r -> {
+                                                       return userRepository.findUserByEmail(r).orElseThrow(
+                                                               () -> new ResourceNotFoundException("Error adding the candidates for exam"));
+                                                   })
+                                                    .collect(Collectors.toSet())
+                                    ));
+        User john = userRepository.save(new User()
+                                    .setEmail("johndoe@cbt.com")
+                                    .setPassword("johnnydoe")
+                                    .setRole(Role.CANDIDATE));
+        MvcResult result = mockMvc.perform(
+                                          post(URI+"/register/"+newExam.getExamNumber())
+                                                  .contentType(MediaType.APPLICATION_JSON)
+                                                  .content("")
+                                                  .accept(MediaType.APPLICATION_JSON))
+                                  .andReturn();
+        Exam exam = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
+        assertNotNull(exam);
+        assertThat(exam.getCandidates().size()).isEqualTo(3);
     }
 
     private List<Question> getExamQuestions(){

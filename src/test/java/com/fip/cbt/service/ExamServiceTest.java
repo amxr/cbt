@@ -148,6 +148,26 @@ public class ExamServiceTest {
         assertThat(addedCandidatesExam).isNotNull();
     }
     
+    @Test
+    public void registerUserTest(){
+        Exam mockedExam = new Exam().setCandidates(new HashSet<>(){
+            {
+                add(new User());
+                add(new User());
+            }
+        });
+        User applyingUser = new User()
+                .setEmail("johndoe@cbt.com")
+                        .setPassword("johnnydoe");
+        
+        when(examRepository.findExamByExamNumber(any(String.class))).thenReturn(Optional.of(mockedExam));
+        
+        when(examRepository.save(any(Exam.class))).thenReturn(new Exam());
+        
+        Exam addedCandidatesExam = examService.registerUser("examNumber", applyingUser);
+        assertThat(addedCandidatesExam).isNotNull();
+    }
+    
     private ExamRequest getExam(String id, List<String> candidateEmails){
         return new ExamRequest()
                 .setExamNumber(id)

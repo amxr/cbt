@@ -12,6 +12,7 @@ import com.fip.cbt.repository.ExamRepository;
 import com.fip.cbt.repository.UserRepository;
 import com.fip.cbt.service.ExamService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -90,6 +91,20 @@ public class ExamServiceImpl implements ExamService {
             exam.getCandidates().add(user);
         }
 
+        return examRepository.save(exam);
+    }
+    
+    @Override
+    public Exam registerUser(String examNumber, UserDetails userDetails){
+        Exam exam = examRepository.findExamByExamNumber(examNumber)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found.")
+                );
+        User currentUser = userRepository.findUserByEmail(userDetails.getUsername())
+                                         .orElseThrow(() -> new ResourceNotFoundException("No such User "+userDetails.getUsername()));
+    
+        exam.getCandidates().add(currentUser);
+        
         return examRepository.save(exam);
     }
 }
