@@ -1,6 +1,5 @@
 package com.fip.cbt.controller.api;
 
-import com.fip.cbt.controller.request.AddCandidatesRequest;
 import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.controller.request.UpdateExamRequest;
 import com.fip.cbt.model.Exam;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @CrossOrigin
@@ -56,21 +56,21 @@ public class ExamController {
         return examService.update(updateExamRequest);
     }
 
-    @Operation(summary = "This is used to add candidates for the exam")
+    /*@Operation(summary = "This is used to add candidates for the exam")
     @PatchMapping("/{examNumber}")
     public Exam addCandidates(@PathVariable String examNumber, @RequestBody AddCandidatesRequest addCandidatesRequest){
         return examService.addCandidates(examNumber, addCandidatesRequest);
-    }
+    }*/
     
     @Operation(summary = "This is used to approve candidates for the exam")
     @PatchMapping("/{examNumber}/candidates")
-    public Exam approveCandidates(@PathVariable String examNumber, @RequestBody AddCandidatesRequest approvedCandidatesRequest){
+    public Exam approveCandidates(@PathVariable String examNumber, @RequestBody Set<String> approvedCandidatesRequest){
         return examService.approveCandidates(examNumber, approvedCandidatesRequest);
     }
     
     @Operation(summary = "This is used by candidates to register for the exam")
     @PostMapping("/register/{examNumber}")
-    public Exam registerUser(@PathVariable String examNumber, @AuthenticationPrincipal UserDetails userDetails){
-        return examService.registerUser(examNumber, userDetails);
+    public Exam userRegistration(@PathVariable String examNumber, @AuthenticationPrincipal UserDetails userDetails){
+        return examService.userRegistration(examNumber, userDetails);
     }
 }

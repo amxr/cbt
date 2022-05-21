@@ -30,6 +30,7 @@ public class Exam {
     private String description;
     private String instructions;
     private LocalDateTime start;
+    private Set<String> candidateRequests;
     @JsonIncludeProperties({"id", "email", "name"})
     @DBRef
     private Set<User> candidates;

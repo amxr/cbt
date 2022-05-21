@@ -1,6 +1,5 @@
 package com.fip.cbt.service;
 
-import com.fip.cbt.controller.request.AddCandidatesRequest;
 import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.controller.request.UpdateExamRequest;
 import com.fip.cbt.exception.ResourceNotFoundException;
@@ -24,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -123,7 +123,7 @@ public class ExamServiceTest {
         assertThat(exams.size()).isEqualTo(3);
     }
     
-    @Test
+    /*@Test
     public void addCandidatesTest(){
         Exam mockedExam = new Exam().setCandidates(new HashSet<>(){
             {
@@ -146,14 +146,14 @@ public class ExamServiceTest {
         
         Exam addedCandidatesExam = examService.addCandidates("examNumber", newCandidatesRequest);
         assertThat(addedCandidatesExam).isNotNull();
-    }
+    }*/
     
     @Test
     public void registerUserTest(){
-        Exam mockedExam = new Exam().setCandidates(new HashSet<>(){
+        Exam mockedExam = new Exam().setCandidateRequests(new HashSet<>(){
             {
-                add(new User());
-                add(new User());
+                add("aalex@cbt.com");
+                add("bobreed@cbt.com");
             }
         });
         User applyingUser = new User()
@@ -161,30 +161,30 @@ public class ExamServiceTest {
                         .setPassword("johnnydoe");
         
         when(examRepository.findExamByExamNumber(any(String.class))).thenReturn(Optional.of(mockedExam));
+        when(examRepository.save(any(Exam.class))).thenReturn(mockedExam);
         
-        when(examRepository.save(any(Exam.class))).thenReturn(new Exam());
+        when(userRepository.findUserByEmail(any(String.class))).thenReturn(Optional.of(applyingUser));
         
-        Exam addedCandidatesExam = examService.registerUser("examNumber", applyingUser);
+        Exam addedCandidatesExam = examService.userRegistration("examNumber", applyingUser);
         assertThat(addedCandidatesExam).isNotNull();
     }
     
     @Test
     public void approveCandidatesTest(){
-        Exam mockedExam = new Exam().setCandidates(new HashSet<>(){
+        Exam mockedExam = new Exam().setCandidateRequests(new HashSet<>(){
             {
-                add(new User());
-                add(new User());
+                add("aalex@cbt.com");
+                add("bobreed@cbt.com");
             }
         });
         when(examRepository.findExamByExamNumber(any(String.class))).thenReturn(Optional.of(mockedExam));
     
-        AddCandidatesRequest approvedCandidates = new AddCandidatesRequest()
-                .setCandidates(new HashSet<>(){
+        Set<String> approvedCandidates = new HashSet<>(){
                     {
                         add("aalex@cbt.com");
                         add("bobreed@cbt.com");
                     }
-                });
+                };
     
         when(userRepository.findUserByEmail(any(String.class))).thenReturn(Optional.of(new User()));
     
@@ -203,7 +203,7 @@ public class ExamServiceTest {
                 .setDuration(5000)
                 .setTimed(true)
                 .setQuestions(getExamQuestions())
-                .setCandidates(new HashSet<>(){
+                .setCandidateRequests(new HashSet<>(){
                     {
                         addAll(candidateEmails);
                         //add("aalex@cbt.com");

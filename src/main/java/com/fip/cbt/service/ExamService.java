@@ -1,12 +1,12 @@
 package com.fip.cbt.service;
 
-import com.fip.cbt.controller.request.AddCandidatesRequest;
 import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.controller.request.UpdateExamRequest;
 import com.fip.cbt.model.Exam;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ExamService {
     Exam add(ExamRequest examRequest);
@@ -19,9 +19,9 @@ public interface ExamService {
 
     List<Exam> getAll();
 
-    Exam addCandidates(String examNumber, AddCandidatesRequest addCandidatesRequest);
+    //Exam addCandidates(String examNumber, AddCandidatesRequest addCandidatesRequest);
     
-    Exam registerUser(String examNumber, UserDetails userDetails);
+    Exam userRegistration(String examNumber, UserDetails userDetails);
     
-    Exam approveCandidates(String examNumber, AddCandidatesRequest approvedCandidates);
+    Exam approveCandidates(String examNumber, Set<String> approvedCandidates);
 }

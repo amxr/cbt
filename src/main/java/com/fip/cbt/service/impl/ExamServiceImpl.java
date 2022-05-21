@@ -1,6 +1,5 @@
 package com.fip.cbt.service.impl;
 
-import com.fip.cbt.controller.request.AddCandidatesRequest;
 import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.controller.request.UpdateExamRequest;
 import com.fip.cbt.exception.ResourceAlreadyExistsException;
@@ -16,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,14 +33,14 @@ public class ExamServiceImpl implements ExamService {
         if(examRepository.findExamByExamNumber(examRequest.getExamNumber()).isPresent())
             throw new ResourceAlreadyExistsException("Exam with number " + examRequest.getExamNumber() + " already exists.");
 
-        Set<User> users = examRequest.getCandidates()
+        /*Set<User> users = examRequest.getCandidateRequests()
                 .stream().map(r -> {
                     return userRepository.findUserByEmail(r).orElseThrow(() -> new ResourceNotFoundException("Error adding the candidates for exam"));
                 })
-                .collect(Collectors.toSet());
+                .collect(Collectors.toSet());*/
 
         Exam exam = ExamMapper.toExam(examRequest);
-        exam.setCandidates(users);
+        exam.setCandidateRequests(examRequest.getCandidateRequests());
         exam.setCreated(LocalDateTime.now());
 
         return examRepository.save(exam);
@@ -78,7 +78,7 @@ public class ExamServiceImpl implements ExamService {
         return examRepository.findAll();
     }
 
-    @Override
+    /*@Override
     public Exam addCandidates(String examNumber, AddCandidatesRequest addCandidatesRequest) {
         Exam exam = examRepository.findExamByExamNumber(examNumber)
                 .orElseThrow(
@@ -92,10 +92,10 @@ public class ExamServiceImpl implements ExamService {
         }
 
         return examRepository.save(exam);
-    }
+    }*/
     
     @Override
-    public Exam registerUser(String examNumber, UserDetails userDetails){
+    public Exam userRegistration(String examNumber, UserDetails userDetails){
         Exam exam = examRepository.findExamByExamNumber(examNumber)
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found.")
@@ -103,26 +103,25 @@ public class ExamServiceImpl implements ExamService {
         User currentUser = userRepository.findUserByEmail(userDetails.getUsername())
                                          .orElseThrow(() -> new ResourceNotFoundException("No such User "+userDetails.getUsername()));
     
-        exam.getCandidates().add(currentUser);
+        //exam.getCandidates().add(currentUser);
+        if(exam.getCandidateRequests() == null) exam.setCandidateRequests(new HashSet<>());
+        exam.getCandidateRequests().add(currentUser.getUsername());
         
         return examRepository.save(exam);
     }
     
-    public Exam approveCandidates(String examNumber, AddCandidatesRequest approvedCandidates){
+    public Exam approveCandidates(String examNumber, Set<String> approvedCandidates){
         Exam exam = examRepository.findExamByExamNumber(examNumber)
                                   .orElseThrow(
                                           () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found.")
                                   );
-        Set<User> approvedUsers = approvedCandidates.getCandidates()
-                                                    .stream()
-                                                    .map( r -> {
-                                                        return userRepository.findUserByEmail(r)
-                                                                             .orElseThrow(() -> new ResourceNotFoundException("No such user: "+r));
-                                                          }
-                                                    ).collect(Collectors.toSet());
-        if(!approvedUsers.containsAll(exam.getCandidates())) {
-            exam.setCandidates(approvedUsers);
-        }
-            return exam;
+        exam.setCandidates(approvedCandidates.stream().map(
+                r -> {
+                       return userRepository.findUserByEmail(r)
+                                            .orElseThrow(() -> new ResourceNotFoundException("No such user: "+r));
+                       }
+                       ).collect(Collectors.toSet())
+        );
+        return exam;
     }
 }
