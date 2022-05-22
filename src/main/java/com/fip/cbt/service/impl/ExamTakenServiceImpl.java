@@ -1,9 +1,8 @@
 package com.fip.cbt.service.impl;
 
 import com.fip.cbt.controller.request.ExamTakenRequest;
-import com.fip.cbt.exception.ResourceAlreadyExistsException;
 import com.fip.cbt.exception.ResourceNotFoundException;
-import com.fip.cbt.mapper.ExamTakenMapper;
+import com.fip.cbt.dto.mapper.ExamTakenMapper;
 import com.fip.cbt.model.*;
 import com.fip.cbt.repository.ExamRepository;
 import com.fip.cbt.repository.ExamTakenRepository;
@@ -13,11 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 

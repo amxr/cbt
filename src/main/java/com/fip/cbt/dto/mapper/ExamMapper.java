@@ -1,4 +1,4 @@
-package com.fip.cbt.mapper;
+package com.fip.cbt.dto.mapper;
 
 import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.controller.request.UpdateExamRequest;
@@ -13,6 +13,7 @@ public class ExamMapper {
                 .setDescription(examRequest.getDescription())
                 .setInstructions(examRequest.getInstructions())
                 .setStart(examRequest.getStart())
+                .setOpen(examRequest.isOpen())
                 .setDuration(examRequest.getDuration())
                 .setTimed(examRequest.isTimed())
                 .setQuestions(examRequest.getQuestions());
@@ -27,6 +28,7 @@ public class ExamMapper {
                 .setDescription(examRequest.getDescription())
                 .setInstructions(examRequest.getInstructions())
                 .setStart(examRequest.getStart())
+                .setOpen(examRequest.isOpen())
                 .setDuration(examRequest.getDuration())
                 .setTimed(examRequest.isTimed())
                 .setQuestions(examRequest.getQuestions());

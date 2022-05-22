@@ -5,28 +5,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fip.cbt.CbtApplication;
 import com.fip.cbt.controller.request.ExamRequest;
+import com.fip.cbt.dto.mapper.ExamMapper;
 import com.fip.cbt.model.Exam;
 import com.fip.cbt.model.Question;
 import com.fip.cbt.model.Role;
 import com.fip.cbt.model.User;
 import com.fip.cbt.repository.ExamRepository;
 import com.fip.cbt.repository.UserRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {CbtApplication.class})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ExamControllerTest {
 
     @Autowired
@@ -46,29 +44,47 @@ class ExamControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder encoder;
+
     private final String URI = "/api/v1/exam";
 
-    @BeforeEach
-    void setUp(){
-        User alice = new User().setName("Alice Alex")
-                               .setEmail("aalex@cbt.com")
-                               .setPassword("aliceAlex123")
-                               .setRole(Role.CANDIDATE);
-        User bob = new User().setName("Robert Reed")
-                             .setEmail("bobreed@cbt.com")
-                             .setPassword("bobbyreeder12")
-                             .setRole(Role.CANDIDATE);
-        userRepository.saveAll(List.of(alice, bob));
+    @BeforeAll
+    void beforeAll(){
+        userRepository.deleteAll();
+        User flexisaf = new User()
+                .setEmail("admin@flexisaf.com")
+                .setPassword(encoder.encode("administrator"))
+                .setName("flexisaf")
+                .setRole(Role.TESTOWNER)
+                .setEnabled(true);
+        User alice = new User()
+                .setName("Alice Alex")
+                .setEmail("aalex@cbt.com")
+                .setPassword(encoder.encode("aliceAlex123"))
+                .setRole(Role.CANDIDATE)
+                .setEnabled(true);
+        User bob = new User()
+                .setName("Robert Reed")
+                .setEmail("bobreed@cbt.com")
+                .setPassword(encoder.encode("bobbyreeder12"))
+                .setRole(Role.CANDIDATE)
+                .setEnabled(true);
+        userRepository.saveAll(List.of(alice, bob, flexisaf));
     }
     
     @AfterEach
     void tearDown() {
         examRepository.deleteAll();
+    }
+
+    @AfterAll
+    void afterAll(){
         userRepository.deleteAll();
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
+    @WithMockUser(username = "admin@flexisaf.com", password = "administrator", authorities = {"TESTOWNER"})
     void addExamTest() throws Exception {
         ExamRequest newExam = getExam();
         MvcResult result = mockMvc.perform(
@@ -96,12 +112,11 @@ class ExamControllerTest {
         Exam exam = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
         assertNotNull(exam);
         assertEquals(exam.getQuestions().size(), newExam.getQuestions().size());
-        assertEquals(exam.getCandidateRequests().size(), newExam.getCandidateRequests().size());
-        assertNull(exam.getCandidates());
+        assertThat(exam.getCandidates()).isNullOrEmpty();
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
+    @WithMockUser(username = "admin@flexisaf.com", password = "administrator", authorities = {"TESTOWNER"})
     void getAllExamsTest() throws Exception {
         ExamRequest newExam = getExam();
         mockMvc.perform(
@@ -138,7 +153,7 @@ class ExamControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
+    @WithMockUser(username = "admin@flexisaf.com", password = "administrator", authorities = {"TESTOWNER"})
     void getOneExamTest() throws Exception{
         ExamRequest newExam = getExam();
         mockMvc.perform(get(URI+"/"+newExam.getExamNumber()))
@@ -174,7 +189,7 @@ class ExamControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
+    @WithMockUser(username = "admin@flexisaf.com", password = "administrator", authorities = {"TESTOWNER"})
     void deleteExamTest() throws Exception{
         //TODO: Review this test
         ExamRequest newExam = getExam();
@@ -211,7 +226,7 @@ class ExamControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
+    @WithMockUser(username = "admin@flexisaf.com", password = "administrator", authorities = {"TESTOWNER"})
     void updateExamTest() throws Exception{
         ExamRequest newExam = getExam();
         MvcResult result = mockMvc.perform(
@@ -262,74 +277,25 @@ class ExamControllerTest {
         assertNotEquals(updatedExam.getQuestions().size(), newExam.getQuestions().size());
         assertNotEquals(updatedExam.isTimed(), newExam.isTimed());
     }
-    
+
     @Test
-    @WithMockUser(username = "johndoe@cbt.com", password = "johnnydoe", authorities = {"CANDIDATE"})
+    @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
     void userRegistrationTest() throws Exception {
         ExamRequest newExam = getExam();
         examRepository.save(new Exam()
                                     .setExamNumber(newExam.getExamNumber()));
-                                    //.setCandidateRequests(newExam.getCandidateRequests()));
-        User john = userRepository.save(new User()
-                                    .setEmail("johndoe@cbt.com")
-                                    .setPassword("johnnydoe")
-                                    .setRole(Role.CANDIDATE));
+
         MvcResult result = mockMvc.perform(
-                                          post(URI+"/register/"+newExam.getExamNumber())
-                                                  .contentType(MediaType.APPLICATION_JSON)
-                                                  .content("")
-                                                  .accept(MediaType.APPLICATION_JSON))
-                                  .andReturn();
+                patch(URI+"/"+newExam.getExamNumber()+"/register/"))
+                .andReturn();
+
         Exam exam = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
         assertNotNull(exam);
-        assertThat(exam.getCandidateRequests().size()).isEqualTo(1);
+        assertThat(exam.getRegisteredCandidates().size()).isEqualTo(1);
     }
-    
-    /*@Test
-    @WithMockUser(username = "admin@cbt.com", password = "admin", authorities = {"ADMINISTRATOR"})
-    void addCandidatesTest() throws Exception {
-        User charlie = new User().setName("Charles Cousy")
-                                 .setEmail("ccousy@cbt.com")
-                                 .setPassword("ccousy12")
-                                 .setRole(Role.CANDIDATE);
-        User dave = new User().setName("David Dune")
-                              .setEmail("davedune@cbt.com")
-                              .setPassword("davedune12")
-                              .setRole(Role.CANDIDATE);
-    
-        userRepository.saveAll(List.of(charlie, dave));
-    
-        ExamRequest newExam = getExam();
-        examRepository.save(new Exam()
-                                    .setExamNumber(newExam.getExamNumber())
-                                    .setCandidates(
-                                            newExam.getCandidates().stream()
-                                                   .map(r -> {
-                                                       return userRepository.findUserByEmail(r).orElseThrow(
-                                                               () -> new ResourceNotFoundException("Error adding the candidates for exam"));
-                                                   })
-                                                   .collect(Collectors.toSet())
-                                    ));
-        AddCandidatesRequest addCandidatesRequest = new AddCandidatesRequest()
-                .setCandidates(new HashSet<>(){
-                    {
-                        add("ccousy@cbt.com");
-                        add("davedune@cbt.com");
-                    }
-                });
-        MvcResult result = mockMvc.perform(
-                                          patch(URI+"/"+newExam.getExamNumber())
-                                                  .contentType(MediaType.APPLICATION_JSON)
-                                                  .content(mapToJson(addCandidatesRequest)).param("examNumber", newExam.getExamNumber())
-                                                  .accept(MediaType.APPLICATION_JSON))
-                                  .andReturn();
-        Exam exam = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
-        assertNotNull(exam);
-        assertThat(exam.getCandidates().size()).isEqualTo(4);
-    }*/
-    
+
     @Test
-    @WithMockUser(username = "admin@cbt.com", password = "admin", authorities = {"ADMINISTRATOR"})
+    @WithMockUser(username = "admin@flexisaf.com", password = "administrator", authorities = {"TESTOWNER"})
     void approveCandidatesTest() throws Exception {
         User charlie = new User().setName("Charles Cousy")
                              .setEmail("ccousy@cbt.com")
@@ -339,67 +305,66 @@ class ExamControllerTest {
                              .setEmail("davedune@cbt.com")
                              .setPassword("davedune12")
                              .setRole(Role.CANDIDATE);
-        
-        userRepository.saveAll(List.of(charlie, dave));
-        
+
+        List<User> users = userRepository.saveAll(List.of(charlie, dave));
+        User alice = userRepository.findUserByEmail("aalex@cbt.com").orElseThrow();
+        User bob = userRepository.findUserByEmail("bobreed@cbt.com").orElseThrow();
+        Set<User> usersSet = Set.of(users.get(0), users.get(1), alice, bob);
+
+       User flexisaf = userRepository.findUserByEmail("admin@flexisaf.com").orElseThrow();
+
         ExamRequest newExam = getExam();
-        newExam.setCandidateRequests(new HashSet<>(){
-            {
-                add("aalex@cbt.com");
-                add("bobreed@cbt.com");
-                add("ccousy@cbt.com");
-                add("davedune@cbt.com");
-            }
-        });
-        examRepository.save(new Exam()
-                                    .setExamNumber(newExam.getExamNumber())
-                                    .setCandidateRequests(
-                                            newExam.getCandidateRequests()
-                                    ));
-        Set<String> approvedCandidates = new HashSet<>(){
-                    {
-                        add("aalex@cbt.com");
-                        add("bobreed@cbt.com");
-                    }
-                };
+        Exam exam = ExamMapper.toExam(newExam)
+                .setRegisteredCandidates(usersSet)
+                .setCandidates(Collections.emptySet())
+                .setOwner(flexisaf);
+
+        Exam savedExam = examRepository.save(exam);
+
+        assertThat(savedExam.getRegisteredCandidates().size()).isEqualTo(4);
+
+        Set<String> approvedCandidates = Set.of("bobreed@cbt.com", "ccousy@cbt.com");
+
         MvcResult result = mockMvc.perform(
-                                          patch(URI+"/"+newExam.getExamNumber()+"/candidates")
+                                          patch(URI+"/"+newExam.getExamNumber()+"/candidates/approve")
                                                   .contentType(MediaType.APPLICATION_JSON)
-                                                  .content(mapToJson(approvedCandidates)).param("examNumber", newExam.getExamNumber())
+                                                  .content(mapToJson(approvedCandidates))
                                                   .accept(MediaType.APPLICATION_JSON))
                                   .andReturn();
-        Exam exam = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
-        assertNotNull(exam);
-        assertThat(exam.getCandidates().size()).isEqualTo(2);
-    }
-    
-    @Test
-    void setContainsTest(){
-        ExamRequest newExam = getExam();
-        Set<String> containedCandidate = new HashSet<>(){
-            {
-                add("aalex@cbt.com");
-            }
-        };
-        assertThat(containedCandidate.equals(newExam.getCandidateRequests())).isFalse();
 
-        Set<String> notContainedCandidate = new HashSet<>(){
-            {
-                add("johndoe@cbt.com");
-            }
-        };
-        assertThat(notContainedCandidate.equals(newExam.getCandidateRequests())).isFalse();
-    
-        Set<String> containsAllCandidates = new HashSet<>(){
-            {
-                add("aalex@cbt.com");
-                add("bobreed@cbt.com");
-            }
-        };
-        assertThat(containsAllCandidates.equals(newExam.getCandidateRequests())).isTrue();
-    
+        Exam examResult = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
+        assertNotNull(examResult);
+        assertThat(examResult.getCandidates().size()).isEqualTo(2);
+        assertThat(examResult.getRegisteredCandidates().size()).isEqualTo(2);
     }
 
+//    @Test
+//    void setContainsTest(){
+//        ExamRequest newExam = getExam();
+//        Set<String> containedCandidate = new HashSet<>(){
+//            {
+//                add("aalex@cbt.com");
+//            }
+//        };
+//        assertThat(containedCandidate.equals(newExam.getCandidateRequests())).isFalse();
+//
+//        Set<String> notContainedCandidate = new HashSet<>(){
+//            {
+//                add("johndoe@cbt.com");
+//            }
+//        };
+//        assertThat(notContainedCandidate.equals(newExam.getCandidateRequests())).isFalse();
+//
+//        Set<String> containsAllCandidates = new HashSet<>(){
+//            {
+//                add("aalex@cbt.com");
+//                add("bobreed@cbt.com");
+//            }
+//        };
+//        assertThat(containsAllCandidates.equals(newExam.getCandidateRequests())).isTrue();
+//
+//    }
+//
     private List<Question> getExamQuestions(){
         return List.of(
                 new Question()
@@ -431,12 +396,7 @@ class ExamControllerTest {
                 .setDuration(5000)
                 .setTimed(true)
                 .setQuestions(getExamQuestions())
-                .setCandidateRequests(new HashSet<>(){
-                    {
-                        add("aalex@cbt.com");
-                        add("bobreed@cbt.com");
-                    }
-                });
+                .setOpen(true);
     }
 
     private String mapToJson(Object obj) throws JsonProcessingException {

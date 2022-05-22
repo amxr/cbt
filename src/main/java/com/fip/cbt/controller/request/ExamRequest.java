@@ -45,8 +45,10 @@ public class ExamRequest {
     @NotNull(message = "timed cannot be empty")
     @JsonProperty("timed")
     private boolean isTimed;
-    
-    private Set<String> candidateRequests;
+
+    @NotNull(message = "timed cannot be empty")
+    @JsonProperty("open")
+    private boolean isOpen;
 
     @JsonProperty("candidate_emails")
     Set<String> candidates;
