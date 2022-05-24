@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fip.cbt.model.Question;
+import com.fip.cbt.model.User;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -49,7 +50,7 @@ public class ExamRequest {
     private Set<String> candidateRequests;
 
     @JsonProperty("candidate_emails")
-    Set<String> candidates;
+    Set<User> candidates;
 
     @NotEmpty(message = "Questions cannot be empty!")
     private List<@Valid Question> questions;

@@ -1,6 +1,7 @@
 package com.fip.cbt.service.impl;
 
 import com.fip.cbt.controller.request.ExamTakenRequest;
+import com.fip.cbt.exception.GlobalExceptionHandler;
 import com.fip.cbt.exception.ResourceAlreadyExistsException;
 import com.fip.cbt.exception.ResourceNotFoundException;
 import com.fip.cbt.mapper.ExamTakenMapper;
@@ -38,22 +39,20 @@ public class ExamTakenServiceImpl implements ExamTakenService {
     
     @Override
     public ExamTaken add(ExamTakenRequest examTakenRequest, UserDetails userDetails) {
-        //TODO: Search by ID [DONE]
-        //TODO: Refactor the following lines
+       
         Exam exam = examRepository.findById(examTakenRequest.getExamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
-//        Exam exam = examRepository.findExamByExamNumber(examTakenRequest.getExamId())
-//                .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
         
         User user = userRepository.findUserByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("No such User "+userDetails.getUsername()));
         
+        if(!exam.getCandidates().contains(user)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User has not registered or has not been approved");
+        }
+        
         if(examTakenRepository.findOneByUserIdAndExamId(user, exam).isPresent()) {
-            //throw new ResourceAlreadyExistsException("User " + userDetails.getUsername() + " has already submitted exam " +
-            //                                                 examTakenRequest.getExamId());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User can't submit an exam more than once");
         }
-        //TODO: End of proposed Refactoring
         
         AtomicReference<Double> totalScore = new AtomicReference<>((double) 0);
         List<QuestionResponse> responses = examTakenRequest.getResponses()

@@ -361,9 +361,9 @@ public class ExamTakenRepositoryTest {
                 .setQuestions(getExamQuestions())
                 .setCandidates(new HashSet<>(){
                     {
-                        addAll(candidateEmails);
-                        //add("aalex@cbt.com");
-                        //add("bobreed@cbt.com");
+                        //addAll(candidateEmails);
+                        add(new User().setEmail("aalex@cbt.com").setPassword("aliceAlex123").setRole(Role.CANDIDATE));
+                        add(new User().setEmail("bobreed@cbt.com").setPassword("bobbyreeder12").setRole(Role.CANDIDATE));
                     }
                 });
     }

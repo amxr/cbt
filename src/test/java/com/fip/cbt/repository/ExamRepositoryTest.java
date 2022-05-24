@@ -4,6 +4,8 @@ import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.mapper.ExamMapper;
 import com.fip.cbt.model.Exam;
 import com.fip.cbt.model.Question;
+import com.fip.cbt.model.Role;
+import com.fip.cbt.model.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -145,8 +147,8 @@ public class ExamRepositoryTest {
                 .setQuestions(getExamQuestions())
                 .setCandidates(new HashSet<>(){
                     {
-                        add("aalex@cbt.com");
-                        add("bobreed@cbt.com");
+                        add(new User().setEmail("aalex@cbt.com").setPassword("aliceAlex123").setRole(Role.CANDIDATE));
+                        add(new User().setEmail("bobreed@cbt.com").setPassword("bobbyreeder12").setRole(Role.CANDIDATE));
                     }
                 });
     }

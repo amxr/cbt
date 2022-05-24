@@ -68,9 +68,18 @@ public class ExamTakenControllerTest {
                 .setPassword(encoder.encode("aliceAlex123"))
                 .setEnabled(true)
                 .setRole(Role.CANDIDATE);
-        userRepository.saveAll(List.of(alice,admin));
+        User bob = new User().setEmail("bobreed@cbt.com")
+                             .setPassword("bobbyreeder12")
+                             .setRole(Role.CANDIDATE)
+                             .setEnabled(true);
+        userRepository.saveAll(List.of(alice, bob, admin));
 
         Exam examN101 = ExamMapper.toExam(getExam("N101",List.of("aalex@cbt.com")));
+        examN101.setCandidates(new HashSet<>(){
+            {
+                add(alice);
+            }
+        });
         Exam examN102 = ExamMapper.toExam(getExam("N102",List.of("aalex@cbt.com")));
         examRepository.saveAll(List.of(examN101,examN102));
     }
@@ -117,6 +126,35 @@ public class ExamTakenControllerTest {
         ExamTaken examTaken = mapFromJson(result.getResponse().getContentAsString(), ExamTaken.class);
         assertNotNull(examTaken);
         assertEquals(examTaken.getExam().getExamNumber(), exam.getExamNumber());
+    }
+    
+    @Test
+    @WithMockUser(username = "bobreed@cbt.com", password = "bobbyreeder12", authorities = {"CANDIDATE"})
+    public void submitAndFailTest() throws Exception {
+        Exam exam = examRepository.findExamByExamNumber("N101")
+                                  .orElseThrow(()->new ResourceNotFoundException("No such exam"));
+        ExamTakenRequest examTakenRequest = getExamTaken(exam.getId());
+        
+        /*MvcResult result = mockMvc.perform(
+                                          post(URI)
+                                                  .contentType(MediaType.APPLICATION_JSON)
+                                                  .content(mapToJson(examTakenRequest))
+                                                  .accept(MediaType.APPLICATION_JSON))
+                                  .andExpect(status().isCreated())
+                                  .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                  .andExpect(jsonPath("$.id").isString())
+                                  .andExpect(jsonPath("$.exam.id").value(examTakenRequest.getExamId()))
+                                  .andReturn();*/
+    
+        mockMvc.perform(
+                   post(URI)
+                           .contentType(MediaType.APPLICATION_JSON)
+                           .content(mapToJson(examTakenRequest))
+                           .accept(MediaType.APPLICATION_JSON))
+           .andExpect(status().isForbidden())
+           .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+           .andExpect(jsonPath("$.error_message").value("403 FORBIDDEN \"User has not registered or has not been approved\""))
+           .andExpect(jsonPath("$.error_code").value("403 FORBIDDEN"));
     }
     
     @Test
@@ -395,9 +433,9 @@ public class ExamTakenControllerTest {
                 .setQuestions(getExamQuestions())
                 .setCandidates(new HashSet<>(){
                     {
-                        addAll(candidateEmails);
-                        //add("aalex@cbt.com");
-                        //add("bobreed@cbt.com");
+                        //addAll(candidateEmails);
+                        add(new User().setEmail("aalex@cbt.com").setPassword("aliceAlex123").setRole(Role.CANDIDATE));
+                        add(new User().setEmail("bobreed@cbt.com").setPassword("bobbyreeder12").setRole(Role.CANDIDATE));
                     }
                 });
     }

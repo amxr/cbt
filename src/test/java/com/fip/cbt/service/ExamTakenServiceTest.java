@@ -49,13 +49,15 @@ public class ExamTakenServiceTest {
     public void addTest(){
         ExamRequest examRequest = getExam("N101",List.of("aalex@cbt.com"));
         Exam examN101 = ExamMapper.toExam(examRequest);
+        examN101.setCandidates(examRequest.getCandidates());
         when(examRepository.findById(any(String.class))).thenReturn(Optional.of(examN101));
         
         ExamTakenRequest newExamTakenRequest = getExamTaken(examN101.getExamNumber());
         
         User bob = new User()
                 .setEmail("bobreed@cbt.com")
-                .setPassword("bobbyreeder12");
+                .setPassword("bobbyreeder12")
+                .setRole(Role.CANDIDATE);
         when(userRepository.findUserByEmail(any(String.class))).thenReturn(Optional.of(bob));
     
         when(examTakenRepository.findOneByUserIdAndExamId(any(User.class), any(Exam.class))).thenReturn(Optional.empty());
@@ -197,9 +199,9 @@ public class ExamTakenServiceTest {
                 .setQuestions(getExamQuestions())
                 .setCandidates(new HashSet<>(){
                     {
-                        addAll(candidateEmails);
-                        //add("aalex@cbt.com");
-                        //add("bobreed@cbt.com");
+                        //addAll(candidateEmails);
+                        add(new User().setEmail("aalex@cbt.com").setPassword("aliceAlex123").setRole(Role.CANDIDATE));
+                        add(new User().setEmail("bobreed@cbt.com").setPassword("bobbyreeder12").setRole(Role.CANDIDATE));
                     }
                 });
     }
