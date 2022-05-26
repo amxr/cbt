@@ -34,21 +34,19 @@ public class ExamTakenServiceImpl implements ExamTakenService {
     
     @Override
     public ExamTaken add(ExamTakenRequest examTakenRequest, UserDetails userDetails) {
-        //TODO: Search by ID [DONE]
-        //TODO: Refactor the following lines
+       
         Exam exam = examRepository.findById(examTakenRequest.getExamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
         
         User user = getUser(userDetails.getUsername());
 
         if(!exam.getCandidates().contains(user)){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to take this exam.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User has not registered or has not been approved.");
         }
         
         if(examTakenRepository.findOneByUserAndExam(user, exam).isPresent()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User can't submit an exam more than once");
         }
-        //TODO: End of proposed Refactoring
         
         AtomicReference<Double> totalScore = new AtomicReference<>((double) 0);
         List<QuestionResponse> responses = examTakenRequest.getResponses()

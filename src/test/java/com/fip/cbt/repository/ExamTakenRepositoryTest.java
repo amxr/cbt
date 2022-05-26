@@ -90,7 +90,6 @@ public class ExamTakenRepositoryTest {
 
         Optional<ExamTaken> examsByBob = examTakenRepository.findOneByUserAndExam(bob, N101);
         assertThat(examsByBob).isEmpty();
-
     }
 
 //    @Test

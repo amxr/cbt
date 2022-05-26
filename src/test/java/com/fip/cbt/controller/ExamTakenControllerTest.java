@@ -124,7 +124,6 @@ public class ExamTakenControllerTest {
                 .andExpect(jsonPath("$.error_code").value("403 FORBIDDEN"));
     }
 
-    @Test
     @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
     public void getAllWithNoParametersTest() throws Exception{
         ExamTakenRequest examTakenRequest1 = getExamTaken(N101.getId());
@@ -370,7 +369,6 @@ public class ExamTakenControllerTest {
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         return objectMapper.readValue(json, clazz);
     }
-
     private List<Question> getExamQuestions(){
         return List.of(
                 new Question()
