@@ -1,6 +1,7 @@
 package com.fip.cbt.repository;
 
 import com.fip.cbt.model.Exam;
+import com.fip.cbt.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,18 +13,14 @@ import java.util.Optional;
 @Repository
 public interface ExamRepository extends MongoRepository<Exam, String> {
 
-    @Query("{examNumber:'?0'}")
     Optional<Exam> findExamByExamNumber(String examNumber);
 
-   @Query("{name:'?0'}")
-    List<Exam> findExamByName(String name);
+    List<Exam> findAllByOwner(User owner);
 
-   @Query("{created:'?0'}")
-    List<Exam> findExamByDate(LocalDateTime created);
+    List<Exam> findAllByCandidates(User candidate);
+
+    List<Exam> findExamByStart(LocalDateTime start);
    //TODO: Make query more robust
-
-   @Query("{duration:'?0'}")
-    List<Exam> findExamByDuration(int duration);
 
     long count();
 }

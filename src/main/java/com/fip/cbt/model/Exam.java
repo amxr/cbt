@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -23,6 +22,9 @@ import java.util.Set;
 public class Exam {
     @Id
     private String id;
+    @DBRef
+    @JsonIncludeProperties({"id", "email", "name"})
+    private User owner;
     @JsonProperty("exam_number")
     private String examNumber;
     private String name;
@@ -31,12 +33,18 @@ public class Exam {
     private String description;
     private String instructions;
     private LocalDateTime start;
+    @JsonProperty("registered_candidates")
+    @DBRef
+    @JsonIncludeProperties({"id", "email", "name"})
+    private Set<User> registeredCandidates;
     @JsonIncludeProperties({"id", "email", "name"})
     @DBRef
     private Set<User> candidates;
     private int duration;
     @JsonProperty("timed")
     private boolean isTimed;
+    @JsonProperty("open")
+    private boolean isOpen;
     private List<Question> questions;
     @CreatedDate
     private LocalDateTime created;

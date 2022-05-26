@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin
@@ -35,20 +34,20 @@ public class ExamTakenController {
     
     @GetMapping
     @Operation(summary = "This is used to get all taken exams (with certain parameters), (works differently based on user role)")
-    public List<ExamTaken> getAll(@RequestParam(required = false, defaultValue = "") String user, @RequestParam(required = false, defaultValue = "") String exam, @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
-        return examTakenService.getAll(user.trim(), exam.trim(), userDetails);
+    public List<ExamTaken> getAll(@Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
+        return examTakenService.getAll(userDetails);
     }
     
     @GetMapping("/{examId}")
     @Operation(summary = "This is used to get a taken exam be id")
-    public ExamTaken getOne(@PathVariable String examId){
-        return examTakenService.getOne(examId);
+    public ExamTaken getOne(@PathVariable String examId, @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
+        return examTakenService.getOne(examId, userDetails);
     }
     
     @DeleteMapping("/{examId}")
     @Operation(summary = "This is used to delete a taken exam by id")
-    public void delete(@PathVariable String examId){
-        examTakenService.delete(examId);
+    public void delete(@PathVariable String examId, @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
+        examTakenService.delete(examId, userDetails);
     }
     
 //    @PutMapping

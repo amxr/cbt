@@ -1,5 +1,7 @@
 package com.fip.cbt.controller.request;
 
+import com.fip.cbt.model.Role;
+import com.fip.cbt.validator.EnumNamePattern;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -20,4 +22,7 @@ public class NewUserRequest {
     @NotBlank(message = "password cannot be blank!")
     @Size(min = 6, max = 16, message = "Password length must be between 6 and 16")
     private String password;
+
+    @EnumNamePattern(regexp = "TESTOWNER|CANDIDATE")
+    private Role role;
 }

@@ -58,7 +58,7 @@ public class UserService implements UserDetailsService {
         return mapper.toUserDto(user);
     }
 
-    public List<UserDto> getAll(UserDetails userDetails) {
+    public List<UserDto> getAll() {
         List<User> users = userRepository.findAll();
 
         return users.stream()
