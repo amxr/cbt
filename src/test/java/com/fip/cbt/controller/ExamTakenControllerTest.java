@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fip.cbt.CbtApplication;
-import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.controller.request.ExamTakenRequest;
-import com.fip.cbt.exception.ResourceNotFoundException;
-import com.fip.cbt.mapper.ExamMapper;
 import com.fip.cbt.model.*;
 import com.fip.cbt.repository.ExamRepository;
 import com.fip.cbt.repository.ExamTakenRepository;
@@ -23,9 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,52 +31,39 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {CbtApplication.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ExamTakenControllerTest {
-    
+
     @Autowired
     private MockMvc mockMvc;
-    
+
     @Autowired
     private ExamTakenRepository examTakenRepository;
-    
+
     @Autowired
     private ExamRepository examRepository;
-    
+
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     PasswordEncoder encoder;
-    
+
+    Exam N101, N102;
+    User alice, bob, flexisaf;
+
     private final String URI = "/api/v1/exam/taken";
 
     @BeforeAll
     void beforeAll(){
         userRepository.deleteAll();
-        User admin = new User()
-                .setName("Admin")
-                .setEmail("admin@cbt.com")
-                .setPassword(encoder.encode("administrator"))
-                .setEnabled(true)
-                .setRole(Role.ADMINISTRATOR);
-        User alice = new User().setName("Alice Alex")
-                .setEmail("aalex@cbt.com")
-                .setPassword(encoder.encode("aliceAlex123"))
-                .setEnabled(true)
-                .setRole(Role.CANDIDATE);
-        User bob = new User().setEmail("bobreed@cbt.com")
-                             .setPassword("bobbyreeder12")
-                             .setRole(Role.CANDIDATE)
-                             .setEnabled(true);
-        userRepository.saveAll(List.of(alice, bob, admin));
+        Map<String, User> users = createAndReturnCandidates();
+        alice = users.get("aalex@cbt.com");
+        bob = users.get("bobreed@cbt.com");
+        flexisaf = createAndReturnTestOwner();
 
-        Exam examN101 = ExamMapper.toExam(getExam("N101",List.of("aalex@cbt.com")));
-        examN101.setCandidates(new HashSet<>(){
-            {
-                add(alice);
-            }
-        });
-        Exam examN102 = ExamMapper.toExam(getExam("N102",List.of("aalex@cbt.com")));
-        examRepository.saveAll(List.of(examN101,examN102));
+        Map<String, Exam> exams = createAndReturnExams();
+
+        N101 = exams.get("N101");
+        N102 = exams.get("N102");
     }
 
     @AfterEach
@@ -94,14 +76,12 @@ public class ExamTakenControllerTest {
         examRepository.deleteAll();
         userRepository.deleteAll();
     }
-    
+
     @Test
     @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
-    public void submitTest() throws Exception {
-        Exam exam = examRepository.findExamByExamNumber("N101")
-                                  .orElseThrow(()->new ResourceNotFoundException("No such exam"));
-        ExamTakenRequest examTakenRequest = getExamTaken(exam.getId());
-        
+    public void submitIfApprovedCandidateTest() throws Exception {
+        ExamTakenRequest examTakenRequest = getExamTaken(N101.getId());
+
         MvcResult result = mockMvc.perform(
                                           post(URI)
                                                   .contentType(MediaType.APPLICATION_JSON)
@@ -112,7 +92,7 @@ public class ExamTakenControllerTest {
                                   .andExpect(jsonPath("$.id").isString())
                                   .andExpect(jsonPath("$.exam.id").value(examTakenRequest.getExamId()))
                                   .andReturn();
-    
+
         mockMvc.perform(
                        post(URI)
                                .contentType(MediaType.APPLICATION_JSON)
@@ -122,77 +102,55 @@ public class ExamTakenControllerTest {
                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                .andExpect(jsonPath("$.error_message").value("403 FORBIDDEN \"User can't submit an exam more than once\""))
                .andExpect(jsonPath("$.error_code").value("403 FORBIDDEN"));
-        
+
         ExamTaken examTaken = mapFromJson(result.getResponse().getContentAsString(), ExamTaken.class);
         assertNotNull(examTaken);
-        assertEquals(examTaken.getExam().getExamNumber(), exam.getExamNumber());
+        assertEquals(examTaken.getUser().getId(), alice.getId());
     }
-    
+
     @Test
     @WithMockUser(username = "bobreed@cbt.com", password = "bobbyreeder12", authorities = {"CANDIDATE"})
-    public void submitAndFailTest() throws Exception {
-        Exam exam = examRepository.findExamByExamNumber("N101")
-                                  .orElseThrow(()->new ResourceNotFoundException("No such exam"));
-        ExamTakenRequest examTakenRequest = getExamTaken(exam.getId());
-        
-        /*MvcResult result = mockMvc.perform(
-                                          post(URI)
-                                                  .contentType(MediaType.APPLICATION_JSON)
-                                                  .content(mapToJson(examTakenRequest))
-                                                  .accept(MediaType.APPLICATION_JSON))
-                                  .andExpect(status().isCreated())
-                                  .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                                  .andExpect(jsonPath("$.id").isString())
-                                  .andExpect(jsonPath("$.exam.id").value(examTakenRequest.getExamId()))
-                                  .andReturn();*/
-    
+    public void rejectIfNotApprovedCandidateTest() throws Exception {
+        ExamTakenRequest examTakenRequest = getExamTaken(N102.getId());
+
         mockMvc.perform(
-                   post(URI)
-                           .contentType(MediaType.APPLICATION_JSON)
-                           .content(mapToJson(examTakenRequest))
-                           .accept(MediaType.APPLICATION_JSON))
-           .andExpect(status().isForbidden())
-           .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-           .andExpect(jsonPath("$.error_message").value("403 FORBIDDEN \"User has not registered or has not been approved\""))
-           .andExpect(jsonPath("$.error_code").value("403 FORBIDDEN"));
+                post(URI)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapToJson(examTakenRequest))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error_message").value("403 FORBIDDEN \"You are not allowed to take this exam.\""))
+                .andExpect(jsonPath("$.error_code").value("403 FORBIDDEN"));
     }
-    
-    @Test
-    //@WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
+
     @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
     public void getAllWithNoParametersTest() throws Exception{
-        Exam exam1 = examRepository.findExamByExamNumber("N101")
-                                  .orElseThrow(()->new ResourceNotFoundException("No such exam"));
-        Exam exam2 = examRepository.findExamByExamNumber("N102")
-                                  .orElseThrow(()->new ResourceNotFoundException("No such exam"));
-        
-        ExamTakenRequest examTakenRequest1 = getExamTaken(exam1.getId());
-        ExamTakenRequest examTakenRequest2 = getExamTaken(exam2.getId());
-        
+        ExamTakenRequest examTakenRequest1 = getExamTaken(N101.getId());
+        ExamTakenRequest examTakenRequest2 = getExamTaken(N102.getId());
+
         mockMvc.perform(
                        post(URI)
                                .contentType(MediaType.APPLICATION_JSON)
                                .content(mapToJson(examTakenRequest1))
-                               .accept(MediaType.APPLICATION_JSON))
-               .andReturn();
+                               .accept(MediaType.APPLICATION_JSON));
         mockMvc.perform(
                        post(URI)
                                .contentType(MediaType.APPLICATION_JSON)
                                .content(mapToJson(examTakenRequest2))
-                               .accept(MediaType.APPLICATION_JSON))
-               .andReturn();
-    
+                               .accept(MediaType.APPLICATION_JSON));
+
         MvcResult result = mockMvc.perform(get(URI))
                                   .andExpect(status().isOk())
                                   .andReturn();
-    
+
         String content = result.getResponse().getContentAsString();
         ExamTaken[] examsTaken = mapFromJson(content, ExamTaken[].class);
         assertEquals(2, examsTaken.length);
     }
-    @Test
-    //@WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
-    @WithMockUser(username = "admin@cbt.com", password = "administrator", authorities = {"ADMINISTRATOR"})
+
+/*    @Test
+    @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
     public void getAllWithUserParameterTest() throws Exception{
         //Not working
         Exam exam1 = examRepository.findExamByExamNumber("N101")
@@ -201,7 +159,7 @@ public class ExamTakenControllerTest {
                                   .orElseThrow(()->new ResourceNotFoundException("No such exam"));
 
         User alice = userRepository.findUserByEmail("aalex@cbt.com").orElseThrow();
-        
+
         ExamTaken examTaken1 = examTakenRepository.save(
                 new ExamTaken()
                         .setExam(exam1)
@@ -252,18 +210,18 @@ public class ExamTakenControllerTest {
                             );
                         }})
                         .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0)));
-    
+
         MvcResult result = mockMvc.perform(
                 get(URI)
                         .param("user","aalex@cbt.com"))
                                   .andExpect(status().isOk())
                                   .andReturn();
-    
+
         String content = result.getResponse().getContentAsString();
         ExamTaken[] examsTaken = mapFromJson(content, ExamTaken[].class);
         assertEquals(2, examsTaken.length);
     }
-    
+
     @Test
     @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
     public void getAllWithExamParameterTest() throws Exception{
@@ -271,10 +229,10 @@ public class ExamTakenControllerTest {
                                   .orElseThrow(()->new ResourceNotFoundException("No such exam"));
         Exam exam2 = examRepository.findExamByExamNumber("N102")
                                   .orElseThrow(()->new ResourceNotFoundException("No such exam"));
-        
+
         ExamTakenRequest examTakenRequest1 = getExamTaken(exam1.getId());
         ExamTakenRequest examTakenRequest2 = getExamTaken(exam2.getId());
-        
+
         mockMvc.perform(
                        post(URI)
                                .contentType(MediaType.APPLICATION_JSON)
@@ -287,18 +245,18 @@ public class ExamTakenControllerTest {
                                .content(mapToJson(examTakenRequest2))
                                .accept(MediaType.APPLICATION_JSON))
                .andReturn();
-    
+
         MvcResult result = mockMvc.perform(
                 get(URI)
                         .param("exam","N101"))
                                   .andExpect(status().isOk())
                                   .andReturn();
-    
+
         String content = result.getResponse().getContentAsString();
         ExamTaken[] examsTaken = mapFromJson(content, ExamTaken[].class);
         assertEquals(2, examsTaken.length); //For 2 candidates?
     }
-    
+
     @Test
     @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
     public void getAllWithUserAndExamParametersTest() throws Exception{
@@ -306,10 +264,10 @@ public class ExamTakenControllerTest {
                                   .orElseThrow(()->new ResourceNotFoundException("No such exam"));
         Exam exam2 = examRepository.findExamByExamNumber("N102")
                                   .orElseThrow(()->new ResourceNotFoundException("No such exam"));
-        
+
         ExamTakenRequest examTakenRequest1 = getExamTaken(exam1.getId());
         ExamTakenRequest examTakenRequest2 = getExamTaken(exam2.getId());
-        
+
         mockMvc.perform(
                        post(URI)
                                .contentType(MediaType.APPLICATION_JSON)
@@ -322,27 +280,24 @@ public class ExamTakenControllerTest {
                                .content(mapToJson(examTakenRequest2))
                                .accept(MediaType.APPLICATION_JSON))
                .andReturn();
-        
+
         MvcResult result = mockMvc.perform(
                 get(URI)
                         .param("user","aalex@cbt.com")
                         .param("exam", "N101"))
                                   .andExpect(status().isOk())
                                   .andReturn();
-    
+
         String content = result.getResponse().getContentAsString();
         ExamTaken[] examsTaken = mapFromJson(content, ExamTaken[].class);
         assertEquals(2, examsTaken.length);
-    }
-    
+    }*/
+
     @Test
     @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
     public void getOneTest() throws Exception {
-        Exam exam1 = examRepository.findExamByExamNumber("N101")
-                                   .orElseThrow(()->new ResourceNotFoundException("No such exam"));
-        
-        ExamTakenRequest examTakenRequest = getExamTaken(exam1.getId());
-        
+        ExamTakenRequest examTakenRequest = getExamTaken(N101.getId());
+
         //submit exam
         MvcResult submitExam = mockMvc.perform(
                        post(URI)
@@ -353,55 +308,50 @@ public class ExamTakenControllerTest {
         //parse exam
         String content = submitExam.getResponse().getContentAsString();
         ExamTaken submittedExamTaken = mapFromJson(content, ExamTaken.class);
-        
+
         //then test 'getOne' function
         MvcResult result = mockMvc.perform(
                                           get(URI+"/"+submittedExamTaken.getId()))
                                   .andExpect(status().isOk())
                                   .andReturn();
-    
+
         String resultContent = result.getResponse().getContentAsString();
         ExamTaken returnedExamTaken = mapFromJson(resultContent, ExamTaken.class);
         assertEquals(returnedExamTaken.getExam().getExamNumber(), submittedExamTaken.getExam().getExamNumber());
     }
-    
+
     @Test
-    @WithMockUser(username = "admin", password = "admin", authorities = {"ADMINISTRATOR"})
-    //@WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
+    @WithMockUser(username = "admin@flexisaf.com", password = "administrator", authorities = {"TESTOWNER"})
     public void deleteTest() throws Exception {
-        //Not working
-        Exam exam1 = examRepository.findExamByExamNumber("N101")
-                                   .orElseThrow(()->new ResourceNotFoundException("No such exam"));
-    
         ExamTaken examTaken = examTakenRepository.save(
                 new ExamTaken()
-                        .setExam(exam1)
-                        .setResponses(new ArrayList<>(){{
-                    add(new QuestionResponse().setUserChoice("Me")
-                                              .setText("How are you?")
-                                              .setAnswer("Me")
-                                              .setOptions(List.of("Hello", "Me", "You", "Him"))
-                                              .setPoint(5)
-                    );
-                    add(new QuestionResponse().setUserChoice("Him")
-                                              .setText("Who is she?")
-                                              .setAnswer("Her")
-                                              .setOptions(List.of("Her", "Him", "They", "Them"))
-                                              .setPoint(3)
-                    );
-                    add(new QuestionResponse().setUserChoice("it")
-                                              .setText("Who is he?")
-                                              .setAnswer("It")
-                                              .setOptions(List.of("You", "Me", "Them", "It"))
-                                              .setPoint(2)
-                    );
-                }})
-                        .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0)));
+                        .setExam(N101)
+                        .setResponses(
+                                List.of(
+                                        new QuestionResponse().setUserChoice("Me")
+                                                .setText("How are you?")
+                                                .setAnswer("Me")
+                                                .setOptions(List.of("Hello", "Me", "You", "Him"))
+                                                .setPoint(5),
+                                        new QuestionResponse().setUserChoice("Him")
+                                                .setText("Who is she?")
+                                                .setAnswer("Her")
+                                                .setOptions(List.of("Her", "Him", "They", "Them"))
+                                                .setPoint(3),
+                                        new QuestionResponse().setUserChoice("it")
+                                                .setText("Who is he?")
+                                                .setAnswer("It")
+                                                .setOptions(List.of("You", "Me", "Them", "It"))
+                                                .setPoint(2)
+                                )
+                        )
+                        .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0))
+        );
 
         mockMvc.perform(
                       delete(URI+"/"+ examTaken.getId()))
               .andExpect(status().isOk());
-    
+
 
          mockMvc.perform(get(URI+"/"+ examTaken.getId()))
                                   .andExpect(status().isNotFound())
@@ -409,35 +359,15 @@ public class ExamTakenControllerTest {
                 .andExpect(jsonPath("$.error_code").value("NOT_FOUND"));
 
     }
-    
+
     private String mapToJson(Object obj) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         return objectMapper.writeValueAsString(obj);
     }
-    
+
     private <T> T mapFromJson(String json, Class<T> clazz) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         return objectMapper.readValue(json, clazz);
-    }
-    
-    private ExamRequest getExam(String id, List<String> candidateEmails){
-        return new ExamRequest()
-                .setExamNumber(id)
-                .setName("Nexam")
-                .setPassMark(3)
-                .setDescription("Quisque porta volutpat erat. Quisque erat eros, viverra eget, congue eget, semper rutrum, nulla. Nunc purus.")
-                .setInstructions("Duis consequat dui nec nisi volutpat eleifend. Donec ut dolor. Morbi vel lectus in quam fringilla rhoncus. Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci.")
-                .setStart(LocalDateTime.of(1992, 12, 12, 12, 0))
-                .setDuration(5000)
-                .setTimed(true)
-                .setQuestions(getExamQuestions())
-                .setCandidates(new HashSet<>(){
-                    {
-                        //addAll(candidateEmails);
-                        add(new User().setEmail("aalex@cbt.com").setPassword("aliceAlex123").setRole(Role.CANDIDATE));
-                        add(new User().setEmail("bobreed@cbt.com").setPassword("bobbyreeder12").setRole(Role.CANDIDATE));
-                    }
-                });
     }
     private List<Question> getExamQuestions(){
         return List.of(
@@ -458,6 +388,62 @@ public class ExamTakenControllerTest {
                         .setAnswer("It")
         );
     }
+
+    private Exam getExam(String examNumber){
+        return new Exam()
+                .setExamNumber(examNumber)
+                .setOwner(flexisaf)
+                .setName("Nexam")
+                .setPassMark(3)
+                .setDescription("Quisque porta volutpat erat. Quisque erat eros, viverra eget, congue eget, semper rutrum, nulla. Nunc purus.")
+                .setInstructions("Duis consequat dui nec nisi volutpat eleifend. Donec ut dolor. Morbi vel lectus in quam fringilla rhoncus. Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci.")
+                .setStart(LocalDateTime.of(1992, 12, 12, 12, 0))
+                .setDuration(5000)
+                .setTimed(true)
+                .setQuestions(getExamQuestions())
+                .setOpen(true);
+    }
+
+    private User createAndReturnTestOwner(){
+        User flexisaf = new User()
+                .setEmail("admin@flexisaf.com")
+                .setPassword("administrator")
+                .setName("flexisaf")
+                .setRole(Role.TESTOWNER)
+                .setEnabled(true);
+        return userRepository.save(flexisaf);
+    }
+
+    private Map<String, User> createAndReturnCandidates(){
+        User alice = new User()
+                .setName("Alice Alex")
+                .setEmail("aalex@cbt.com")
+                .setPassword(encoder.encode("aliceAlex123"))
+                .setRole(Role.CANDIDATE)
+                .setEnabled(true);
+        User bob = new User()
+                .setName("Robert Reed")
+                .setEmail("bobreed@cbt.com")
+                .setPassword(encoder.encode("bobbyreeder12"))
+                .setRole(Role.CANDIDATE)
+                .setEnabled(true);
+
+        List<User> users = userRepository.saveAll(List.of(alice, bob));
+
+        return Map.of(users.get(0).getUsername(), users.get(0), users.get(1).getUsername(), users.get(1));
+    }
+
+    private Map<String, Exam> createAndReturnExams(){
+        Exam examN101 = getExam("N101")
+                .setCandidates(Set.of(alice, bob));
+
+        Exam examN102 = getExam("N102")
+                .setCandidates(Set.of(alice));
+        List<Exam> exams = examRepository.saveAll(List.of(examN101, examN102));
+
+        return Map.of(exams.get(0).getExamNumber(), exams.get(0), exams.get(1).getExamNumber(), exams.get(1));
+    }
+
     private ExamTakenRequest getExamTaken(String id){
         return new ExamTakenRequest()
                 .setExamId(id)

@@ -22,6 +22,6 @@ public class UserMapper {
                 .setEmail(userRequest.getEmail().toLowerCase())
                 .setName(userRequest.getName())
                 .setEnabled(true)
-                .setRole(Role.CANDIDATE);
+                .setRole(userRequest.getRole());
     }
 }

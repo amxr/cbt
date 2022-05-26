@@ -1,4 +1,4 @@
-package com.fip.cbt.mapper;
+package com.fip.cbt.dto.mapper;
 
 import com.fip.cbt.controller.request.ExamTakenRequest;
 import com.fip.cbt.model.ExamTaken;

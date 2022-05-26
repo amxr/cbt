@@ -1,24 +1,22 @@
 package com.fip.cbt.service.impl;
 
 import com.fip.cbt.controller.request.ExamTakenRequest;
-import com.fip.cbt.exception.GlobalExceptionHandler;
-import com.fip.cbt.exception.ResourceAlreadyExistsException;
 import com.fip.cbt.exception.ResourceNotFoundException;
-import com.fip.cbt.mapper.ExamTakenMapper;
+import com.fip.cbt.dto.mapper.ExamTakenMapper;
 import com.fip.cbt.model.*;
 import com.fip.cbt.repository.ExamRepository;
 import com.fip.cbt.repository.ExamTakenRepository;
 import com.fip.cbt.repository.UserRepository;
 import com.fip.cbt.service.ExamTakenService;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -33,9 +31,6 @@ public class ExamTakenServiceImpl implements ExamTakenService {
 
     @Autowired
     private UserRepository userRepository;
-
-    //@Autowired
-    //ExamTakenMapper mapper;
     
     @Override
     public ExamTaken add(ExamTakenRequest examTakenRequest, UserDetails userDetails) {
@@ -43,14 +38,13 @@ public class ExamTakenServiceImpl implements ExamTakenService {
         Exam exam = examRepository.findById(examTakenRequest.getExamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
         
-        User user = userRepository.findUserByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("No such User "+userDetails.getUsername()));
-        
-        if(!exam.getCandidates().contains(user)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User has not registered or has not been approved");
+        User user = getUser(userDetails.getUsername());
+
+        if(!exam.getCandidates().contains(user)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User has not registered or has not been approved.");
         }
         
-        if(examTakenRepository.findOneByUserIdAndExamId(user, exam).isPresent()) {
+        if(examTakenRepository.findOneByUserAndExam(user, exam).isPresent()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User can't submit an exam more than once");
         }
         
@@ -72,50 +66,53 @@ public class ExamTakenServiceImpl implements ExamTakenService {
     }
     
     @Override
-    public ExamTaken getOne(String id) {
-        return examTakenRepository.findById(id).orElseThrow(
+    public ExamTaken getOne(String id, UserDetails userDetails) {
+        User user = getUser(userDetails.getUsername());
+
+        ExamTaken taken = examTakenRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Exam with number " + id + " not found.")
         );
-    }
-    
-    @Override
-    public void delete(String id) {
-        ExamTaken examTaken = examTakenRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Could not find Exam with id " +id)
-        );
-        examTakenRepository.delete(examTaken);
-    }
-    
-//    @Override
-//    public ExamTaken update(UpdateExamTakenRequest updateExamTakenRequest) {
-//        examTakenRepository.findById(updateExamTakenRequest.getId())
-//                           .orElseThrow(
-//                              () -> new ResourceNotFoundException("Could not find Exam with id "
-//                                                                          +updateExamTakenRequest.getId())
-//                      );
-//        ExamTaken examTaken = ExamTakenMapper.toExamTaken(updateExamTakenRequest);
-//        return examTakenRepository.save(examTaken);
-//    }
-    
-    @Override
-    public List<ExamTaken> getAll(String user, String exam, UserDetails userDetails) {
-        User currentUser = userRepository.findUserByEmail(userDetails.getUsername())
-                                           .orElseThrow(() -> new ResourceNotFoundException("No such User "+userDetails.getUsername()));
-        if(currentUser.getRole().equals(Role.CANDIDATE)){
-            return examTakenRepository.findAllByUserId(currentUser);
-        }
-        
-        if(!user.equals("")){ //When do we reach here????
-            User _user = userRepository.findUserByEmail(user)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist."));
-            return examTakenRepository.findAllByUserId(_user);
-        }
-        if(!exam.equals("")){
-            Exam _exam = examRepository.findExamByExamNumber(exam)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exam does not exist."));
-            return examTakenRepository.findAllByExam(_exam);
+
+        if(user.getRole() == Role.TESTOWNER && !taken.getExam().getOwner().equals(user)){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This exam does not belong to you.");
         }
 
-        return examTakenRepository.findAll();
+        return taken;
+    }
+    
+    @Override
+    public void delete(String id, UserDetails userDetails) {
+        User user = getUser(userDetails.getUsername());
+
+        ExamTaken taken = examTakenRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Exam with number " + id + " not found.")
+        );
+        if(!taken.getExam().getOwner().equals(user)){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This exam does not belong to you.");
+        }
+        examTakenRepository.delete(taken);
+    }
+    
+    @Override
+    public List<ExamTaken> getAll(UserDetails userDetails) {
+        User user = getUser(userDetails.getUsername());
+
+        if(user.getRole().equals(Role.CANDIDATE)){
+            return examTakenRepository.findAllByUser(user);
+        }
+
+        if(user.getRole().equals(Role.TESTOWNER)){
+            return examTakenRepository.findAll()
+                    .stream()
+                    .filter(e -> e.getExam().getOwner().equals(user))
+                    .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
+    }
+
+    public User getUser(String email){
+        return userRepository.findUserByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("No such User: "+email));
     }
 }

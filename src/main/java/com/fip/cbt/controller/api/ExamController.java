@@ -5,6 +5,7 @@ import com.fip.cbt.controller.request.UpdateExamRequest;
 import com.fip.cbt.model.Exam;
 import com.fip.cbt.service.ExamService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,53 +25,47 @@ public class ExamController {
     @Autowired
     ExamService examService;
 
-    @Operation(summary = "This is used to add a new exam")
+    @Operation(summary = "This is used by testowner to add a new exam")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Exam add(@Valid @RequestBody ExamRequest examRequest){
-        return examService.add(examRequest);
+    public Exam add(@Valid @RequestBody ExamRequest examRequest, @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
+        return examService.add(examRequest, userDetails);
     }
 
     @Operation(summary = "This is used to get all exams added")
     @GetMapping
-    public List<Exam> getAll(){
-        return examService.getAll();
+    public List<Exam> getAll(@Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
+        return examService.getAll(userDetails);
     }
 
     @Operation(summary = "This is used to find an exam by its unique number")
     @GetMapping("/{examNumber}")
     @ResponseStatus(HttpStatus.FOUND)
-    public Exam getOne(@PathVariable String examNumber){
-        return examService.getOne(examNumber);
+    public Exam getOne(@PathVariable String examNumber, @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
+        return examService.getOne(examNumber, userDetails);
     }
 
-    @Operation(summary = "This is used to delete an exam using its unique number")
+    @Operation(summary = "This is used by testowner to delete an exam using its unique number")
     @DeleteMapping("/{examNumber}")
-    public void delete(@PathVariable String examNumber){
-        examService.delete(examNumber);
+    public void delete(@PathVariable String examNumber, @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
+        examService.delete(examNumber, userDetails);
     }
 
-    @Operation(summary = "This is used to update an existing exam")
+    @Operation(summary = "This is used by testowner to update an existing exam")
     @PutMapping
-    public Exam update(@Valid @RequestBody UpdateExamRequest updateExamRequest){
-        return examService.update(updateExamRequest);
+    public Exam update(@Valid @RequestBody UpdateExamRequest updateExamRequest, @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
+        return examService.update(updateExamRequest, userDetails);
     }
-
-    /*@Operation(summary = "This is used to add candidates for the exam")
-    @PatchMapping("/{examNumber}")
-    public Exam addCandidates(@PathVariable String examNumber, @RequestBody AddCandidatesRequest addCandidatesRequest){
-        return examService.addCandidates(examNumber, addCandidatesRequest);
-    }*/
     
-    @Operation(summary = "This is used to approve candidates for the exam")
-    @PatchMapping("/{examNumber}/candidates")
-    public Exam approveCandidates(@PathVariable String examNumber, @RequestBody Set<String> approvedCandidatesRequest){
-        return examService.approveCandidates(examNumber, approvedCandidatesRequest);
+    @Operation(summary = "This is used by testowner to approve candidates for the exam")
+    @PatchMapping("/{examNumber}/candidates/approve")
+    public Exam approveCandidates(@PathVariable String examNumber, @RequestBody Set<String> approvedCandidatesRequest, @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
+        return examService.approveCandidates(examNumber, approvedCandidatesRequest, userDetails);
     }
     
     @Operation(summary = "This is used by candidates to register for the exam")
-    @PostMapping("/register/{examNumber}")
-    public Exam userRegistration(@PathVariable String examNumber, @AuthenticationPrincipal UserDetails userDetails){
+    @PatchMapping("/{examNumber}/register")
+    public Exam userRegistration(@PathVariable String examNumber, @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
         return examService.userRegistration(examNumber, userDetails);
     }
 }

@@ -8,12 +8,13 @@ import com.fip.cbt.controller.request.UserLoginRequest;
 import com.fip.cbt.model.Role;
 import com.fip.cbt.model.User;
 import com.fip.cbt.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -25,27 +26,49 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {CbtApplication.class})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
     
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    PasswordEncoder encoder;
     
     private final String URI = "/api/v1/auth";
-    
+
+    User alice;
+
+    @BeforeAll
+    void beforeAll(){
+        userRepository.deleteAll();
+    }
+
     @BeforeEach
+    void setUp(){
+        alice = new User().setName("Alice Alex")
+                .setEmail("aalex@cbt.com")
+                .setPassword("aliceAlex123")
+                .setRole(Role.CANDIDATE)
+                .setEnabled(true);
+        userRepository.save(
+                new User()
+                        .setEmail("admin@cbt.com")
+                        .setPassword(encoder.encode("administrator"))
+                        .setRole(Role.ADMINISTRATOR)
+                        .setEnabled(true)
+        );
+    }
+    
+    @AfterEach
     void tearDown() {
         userRepository.deleteAll();
     }
     
     @Test
     public void createAndRegisterUserTest() throws Exception {
-        User alice = new User().setName("Alice Alex")
-                               .setEmail("aalex@cbt.com")
-                               .setPassword("aliceAlex123")
-                               .setRole(Role.CANDIDATE);
-    
         MvcResult result = mockMvc.perform(
                                           post(URI+"/register")
                                                   .contentType(MediaType.APPLICATION_JSON)
@@ -74,11 +97,6 @@ public class UserControllerTest {
     
     @Test
     public void getUserDetailsTest() throws Exception {
-        User alice = new User().setName("Alice Alex")
-                               .setEmail("aalex@cbt.com")
-                               .setPassword("aliceAlex123")
-                               .setRole(Role.CANDIDATE);
-    
         mockMvc.perform(
                       post(URI+"/register")
                               .contentType(MediaType.APPLICATION_JSON)
@@ -111,36 +129,31 @@ public class UserControllerTest {
     }
     
     @Test
+    @WithMockUser(username = "admin@cbt.com", password = "administrator", roles = {"ADMINISTRATOR"})
     public void getAllUsersTest() throws Exception {
-        User alice = new User().setName("Alice Alex")
-                               .setEmail("aalex@cbt.com")
-                               .setPassword("aliceAlex123")
-                               .setRole(Role.CANDIDATE);
         User bob = new User().setName("Robert Reed")
                              .setEmail("bobreed@cbt.com")
                              .setPassword("bobbyreeder12")
                              .setRole(Role.CANDIDATE);
-    
+
         mockMvc.perform(
                        post(URI+"/register")
                                .contentType(MediaType.APPLICATION_JSON)
                                .content(mapToJson(alice))
-                               .accept(MediaType.APPLICATION_JSON))
-               .andReturn();
+                               .accept(MediaType.APPLICATION_JSON));
         mockMvc.perform(
                        post(URI+"/register")
                                .contentType(MediaType.APPLICATION_JSON)
                                .content(mapToJson(bob))
-                               .accept(MediaType.APPLICATION_JSON))
-               .andReturn();
-        
+                               .accept(MediaType.APPLICATION_JSON));
+
         MvcResult result = mockMvc.perform(get(URI))
                                   .andExpect(status().isOk())
                                   .andReturn();
     
         String content = result.getResponse().getContentAsString();
         User[] users = mapFromJson(content, User[].class);
-        assertEquals(2, users.length);
+        assertEquals(3, users.length);
     }
     
     private String mapToJson(Object obj) throws JsonProcessingException {
