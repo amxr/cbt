@@ -104,7 +104,7 @@ public class UserServiceTest {
                 .setRole(Role.ADMINISTRATOR);
     
         when(userRepository.findAll()).thenReturn(List.of(alice, bob));
-        List<UserDto> users = userService.getAll(admin);
+        List<UserDto> users = userService.getAll();
         
         assertThat(users.size()).isEqualTo(2);
     }

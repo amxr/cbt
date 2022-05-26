@@ -29,7 +29,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
-    private String URI = "/api/v1/exam";
+    private final String URI = "/api/v1/exam";
+    private final String AUTHURI = "/api/v1/auth";
 
     @Override
     protected void configure(HttpSecurity http) throws Exception{
@@ -47,14 +48,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.PATCH, URI+"/{examNumber}/candidates/approve").hasAnyAuthority(Role.TESTOWNER.toString())
                 .antMatchers(HttpMethod.PATCH, URI+"/{examNumber}/register").hasAnyAuthority(Role.CANDIDATE.toString())
                 .antMatchers(HttpMethod.PATCH, URI+"/{examNumber}").hasAuthority(Role.TESTOWNER.toString())
-                .antMatchers(HttpMethod.DELETE, URI+"/{examNumber}").hasAuthority(Role.TESTOWNER.toString())
+                .antMatchers(HttpMethod.POST, URI+"/taken").hasAuthority(Role.CANDIDATE.toString())
+                .antMatchers(HttpMethod.GET, URI+"/taken").hasAnyAuthority(Role.CANDIDATE.toString(), Role.TESTOWNER.toString())
+                .antMatchers(HttpMethod.GET, URI+"/taken/{examId}").hasAnyAuthority(Role.CANDIDATE.toString(), Role.TESTOWNER.toString())
+                .antMatchers(HttpMethod.DELETE, URI+"/taken/{examId}").hasAuthority(Role.TESTOWNER.toString())
+                .antMatchers(HttpMethod.POST, AUTHURI+"/register", AUTHURI).permitAll()
                 .antMatchers("/actuator/**").permitAll()
-//                .antMatchers(HttpMethod.POST, URI + "/taken").hasAuthority(Role.CANDIDATE.toString())
-//                .antMatchers(HttpMethod.POST, URI + "/register/**").hasAuthority(Role.CANDIDATE.toString())
-//                .antMatchers(HttpMethod.GET, URI + "/taken/**").hasAnyAuthority(Role.CANDIDATE.toString(), Role.ADMINISTRATOR.toString())
-//                .antMatchers(URI+"/**").hasAuthority(Role.ADMINISTRATOR.toString())
-//                .antMatchers(HttpMethod.POST, "/api/v1/auth/user").permitAll()
-//                .antMatchers("/actuator/**").permitAll()
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

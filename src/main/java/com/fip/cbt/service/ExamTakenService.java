@@ -9,11 +9,11 @@ import java.util.List;
 public interface ExamTakenService {
     ExamTaken add(ExamTakenRequest examTakenRequest, UserDetails userDetails);
     
-    ExamTaken getOne(String id);
+    ExamTaken getOne(String id, UserDetails userDetails);
     
-    void delete(String id);
+    void delete(String id, UserDetails userDetails);
     
     //ExamTaken update(UpdateExamTakenRequest updateExamTakenRequest);
-    
-    List<ExamTaken> getAll(String user, String exam, UserDetails userDetails);
+
+    List<ExamTaken> getAll(UserDetails userDetails);
 }

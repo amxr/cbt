@@ -1,29 +1,22 @@
 package com.fip.cbt.repository;
 
-import com.fip.cbt.controller.request.ExamRequest;
-import com.fip.cbt.controller.request.ExamTakenRequest;
 import com.fip.cbt.exception.ResourceNotFoundException;
-import com.fip.cbt.dto.mapper.ExamMapper;
-import com.fip.cbt.dto.mapper.ExamTakenMapper;
 import com.fip.cbt.model.*;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.bson.types.ObjectId;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @DataMongoTest
 @ExtendWith(MockitoExtension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ExamTakenRepositoryTest {
     @Autowired
     ExamTakenRepository examTakenRepository;
@@ -33,339 +26,85 @@ public class ExamTakenRepositoryTest {
     
     @Autowired
     ExamRepository examRepository;
-    
+
+    Exam N101, N102;
+    User alice, bob, flexisaf;
+
+    @BeforeAll
+    void beforeAll(){
+        userRepository.deleteAll();
+        Map<String, User> users = createAndReturnCandidates();
+        alice = users.get("aalex@cbt.com");
+        bob = users.get("bobreed@cbt.com");
+        flexisaf = createAndReturnTestOwner();
+
+        Map<String, Exam> exams = createAndReturnExams();
+
+        N101 = exams.get("N101");
+        N102 = exams.get("N102");
+    }
+
     @AfterEach
     void tearDown(){
         examTakenRepository.deleteAll();
+    }
+
+    @AfterAll
+    void afterAll(){
         userRepository.deleteAll();
         examRepository.deleteAll();
     }
     
-    @BeforeEach
-    void setUp(){
-        Exam examN101 = ExamMapper.toExam(getExam("N101", List.of("aalex@cbt.com")));
-        Exam examN102 = ExamMapper.toExam(getExam("N102",List.of("aalex@cbt.com","bobreed@cbt.com")));
-        examRepository.saveAll(List.of(examN101, examN102));
-        
-        examTakenRepository.saveAll(List.of(
-                new ExamTaken()
-                        .setExam(examN101)
-                        .setResponses(new ArrayList<>(){{
-                            add(new QuestionResponse().setUserChoice("Me")
-                                                      .setText("How are you?")
-                                                      .setAnswer("Me")
-                                                      .setOptions(List.of("Hello", "Me", "You", "Him"))
-                                                      .setPoint(5)
-                            );
-                            add(new QuestionResponse().setUserChoice("Him")
-                                                      .setText("Who is she?")
-                                                      .setAnswer("Her")
-                                                      .setOptions(List.of("Her", "Him", "They", "Them"))
-                                                      .setPoint(3)
-                            );
-                            add(new QuestionResponse().setUserChoice("it")
-                                                      .setText("Who is he?")
-                                                      .setAnswer("It")
-                                                      .setOptions(List.of("You", "Me", "Them", "It"))
-                                                      .setPoint(2)
-                            );
-                        }})
-                        .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0)),
-                new ExamTaken()
-                        .setExam(examN102)
-                        .setResponses(new ArrayList<>(){{
-                            add(new QuestionResponse().setUserChoice("Me")
-                                                      .setText("How are you?")
-                                                      .setAnswer("Me")
-                                                      .setOptions(List.of("Hello", "Me", "You", "Him"))
-                                                      .setPoint(5)
-                            );
-                            add(new QuestionResponse().setUserChoice("Him")
-                                                      .setText("Who is she?")
-                                                      .setAnswer("Her")
-                                                      .setOptions(List.of("Her", "Him", "They", "Them"))
-                                                      .setPoint(3)
-                            );
-                            add(new QuestionResponse().setUserChoice("it")
-                                                      .setText("Who is he?")
-                                                      .setAnswer("It")
-                                                      .setOptions(List.of("You", "Me", "Them", "It"))
-                                                      .setPoint(2)
-                            );
-                        }})
-                        .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0))
-        ));
-        userRepository.saveAll(List.of(
-                new User().setName("Alice Alex")
-                          .setEmail("aalex@cbt.com")
-                          .setPassword("aliceAlex123")
-                          .setRole(Role.CANDIDATE),
-                new User().setName("Robert Reed")
-                             .setEmail("bobreed@cbt.com")
-                             .setPassword("bobbyreeder1")
-                             .setRole(Role.CANDIDATE)
-                ));
-    }
-    
     @Test
-    public void findAllByUserIdTest(){
-        User alice = userRepository.findUserByEmail("aalex@cbt.com")
-                .orElseThrow( ()-> new ResourceNotFoundException("No such user [aalex@cbt.com]"));
-        
-        Exam exam1 = examRepository.findExamByExamNumber("N101")
-                .orElseThrow(()->new ResourceNotFoundException("No such exam"));
-        Exam exam2 = examRepository.findExamByExamNumber("N102")
-                .orElseThrow(()->new ResourceNotFoundException("No such exam"));
-        
-        ExamTakenRequest examTakenRequest1 = new ExamTakenRequest()
-                .setExamId(exam1.getId())
-                .setResponses(new ArrayList<>(){{
-                    add(new QuestionResponse().setUserChoice("Me")
-                                              .setText("How are you?")
-                                              .setAnswer("Me")
-                                              .setOptions(List.of("Hello", "Me", "You", "Him"))
-                                              .setPoint(5)
-                    );
-                    add(new QuestionResponse().setUserChoice("Him")
-                                              .setText("Who is she?")
-                                              .setAnswer("Her")
-                                              .setOptions(List.of("Her", "Him", "They", "Them"))
-                                              .setPoint(3)
-                    );
-                    add(new QuestionResponse().setUserChoice("it")
-                                              .setText("Who is he?")
-                                              .setAnswer("It")
-                                              .setOptions(List.of("You", "Me", "Them", "It"))
-                                              .setPoint(2)
-                    );
-                }})
-                .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0));
-        ExamTakenRequest examTakenRequest2 = new ExamTakenRequest()
-                .setExamId(exam2.getId())
-                .setResponses(new ArrayList<>(){{
-                    add(new QuestionResponse().setUserChoice("Me")
-                                              .setText("How are you?")
-                                              .setAnswer("Me")
-                                              .setOptions(List.of("Hello", "Me", "You", "Him"))
-                                              .setPoint(5)
-                    );
-                    add(new QuestionResponse().setUserChoice("Him")
-                                              .setText("Who is she?")
-                                              .setAnswer("Her")
-                                              .setOptions(List.of("Her", "Him", "They", "Them"))
-                                              .setPoint(3)
-                    );
-                    add(new QuestionResponse().setUserChoice("it")
-                                              .setText("Who is he?")
-                                              .setAnswer("It")
-                                              .setOptions(List.of("You", "Me", "Them", "It"))
-                                              .setPoint(2)
-                    );
-                }})
-                .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0));
-        
-        ExamTaken ignored1 = examTakenRepository.save(
-                ExamTakenMapper.toExamTaken(examTakenRequest1)
-                        .setExam(exam1)
-                        .setUser(alice)
-                        .setPassed(true)
-                        .setTotalPoints(75.0)
-        );
-        ExamTaken ignored2 = examTakenRepository.save(
-                ExamTakenMapper.toExamTaken(examTakenRequest1)
-                        .setExam(exam2)
-                        .setUser(alice)
-                        .setPassed(true)
-                        .setTotalPoints(75.0)
-        );
-        List<ExamTaken> examsByUser = examTakenRepository.findAllByUserId(alice);
-        assertThat(examsByUser.size()).isEqualTo(2);
-    
-        User john = userRepository.save(
-                new User().setName("John Doe")
-                          .setEmail("jdoe@cbt.com")
-                          .setPassword("johndoe123")
-                          .setRole(Role.CANDIDATE)
-        );
-        List<ExamTaken> examsByNewUser = examTakenRepository.findAllByUserId(john);
-        assertThat(examsByNewUser.size()).isEqualTo(0);
+    public void findAllByUserTest(){
+        takeExam(N101, alice);
+        takeExam(N101, bob);
+        takeExam(N101, alice);
+
+        //List<ExamTaken> t = examTakenRepository.findAll();
+        List<ExamTaken> examsTakenByAlice = examTakenRepository.findAllByUser(alice);
+        assertThat(examsTakenByAlice.size()).isEqualTo(2);
+
+        List<ExamTaken> examsTakenByBob = examTakenRepository.findAllByUser(bob);
+        assertThat(examsTakenByBob.size()).isEqualTo(1);
     }
-    
+
     @Test
     public void findAllByExamTest(){
-        Exam examN103 = ExamMapper.toExam(getExam("N101",List.of("aalex@cbt.com","bobreed@cbt.com")));
-        Exam examN104 = ExamMapper.toExam(getExam("N102",List.of("aalex@cbt.com","bobreed@cbt.com")));
-        examRepository.saveAll(List.of(examN103, examN104));
-        //TODO: Test for examNumber(if it is unique
-        ExamTakenRequest examTakenRequest1 = new ExamTakenRequest()
-                .setExamId(examN103.getId())
-                        .setResponses(new ArrayList<>(){{
-                            add(new QuestionResponse().setUserChoice("Me")
-                                                      .setText("How are you?")
-                                                      .setAnswer("Me")
-                                                      .setOptions(List.of("Hello", "Me", "You", "Him"))
-                                                      .setPoint(5)
-                            );
-                            add(new QuestionResponse().setUserChoice("Him")
-                                                      .setText("Who is she?")
-                                                      .setAnswer("Her")
-                                                      .setOptions(List.of("Her", "Him", "They", "Them"))
-                                                      .setPoint(3)
-                            );
-                            add(new QuestionResponse().setUserChoice("it")
-                                                      .setText("Who is he?")
-                                                      .setAnswer("It")
-                                                      .setOptions(List.of("You", "Me", "Them", "It"))
-                                                      .setPoint(2)
-                            );
-                        }})
-                                .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0));
-        ExamTakenRequest examTakenRequest2 = new ExamTakenRequest()
-                .setExamId(examN104.getId())
-                .setResponses(new ArrayList<>(){{
-                    add(new QuestionResponse().setUserChoice("Me")
-                                              .setText("How are you?")
-                                              .setAnswer("Me")
-                                              .setOptions(List.of("Hello", "Me", "You", "Him"))
-                                              .setPoint(5)
-                    );
-                    add(new QuestionResponse().setUserChoice("Him")
-                                              .setText("Who is she?")
-                                              .setAnswer("Her")
-                                              .setOptions(List.of("Her", "Him", "They", "Them"))
-                                              .setPoint(3)
-                    );
-                    add(new QuestionResponse().setUserChoice("it")
-                                              .setText("Who is he?")
-                                              .setAnswer("It")
-                                              .setOptions(List.of("You", "Me", "Them", "It"))
-                                              .setPoint(2)
-                    );
-                }})
-                .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0));
-        
-        examTakenRepository.saveAll(List.of(
-                ExamTakenMapper.toExamTaken(examTakenRequest1)
-                               .setUser(userRepository.findUserByEmail("aalex@cbt.com").get())
-                               .setTotalPoints(75.0)
-                               .setPassed(true)
-                               .setExam(examN103),
-                ExamTakenMapper.toExamTaken(examTakenRequest1)
-                        .setUser(userRepository.findUserByEmail("bobreed@cbt.com").get())
-                        .setTotalPoints(75.0)
-                        .setPassed(true)
-                        .setExam(examN104),
-                ExamTakenMapper.toExamTaken(examTakenRequest2)
-                        .setUser(userRepository.findUserByEmail("aalex@cbt.com").get())
-                        .setTotalPoints(75.0)
-                        .setPassed(true)
-                        .setExam(examN104)
-        ));
-        
-        List<ExamTaken> examsByUser = examTakenRepository.findAllByExam(examN103);
-        assertThat(examsByUser.size()).isEqualTo(1);
-    
-        Exam nonExistentExam = examRepository.save(
-                ExamMapper.toExam(getExam("N101",List.of("aalex@cbt.com","bobreed@cbt.com"))));
-        List<ExamTaken> examsByNonExistentExam = examTakenRepository.findAllByExam(nonExistentExam);
-        assertThat(examsByNonExistentExam.size()).isEqualTo(0);
+        takeExam(N101, alice);
+        takeExam(N101, bob);
+
+        List<ExamTaken> takenN101Exams = examTakenRepository.findAllByExam(N101);
+        assertThat(takenN101Exams.size()).isEqualTo(2);
+
+        List<ExamTaken> takenN102Exams = examTakenRepository.findAllByExam(N102);
+        assertThat(takenN102Exams.size()).isEqualTo(0);
     }
+
     @Test
-    public void findByUserIdAndExamIdTest(){
-        Exam examN103 = ExamMapper.toExam(getExam("N101",List.of("aalex@cbt.com","bobreed@cbt.com")));
-        examRepository.save(examN103);
-        
-        User alice = userRepository.findUserByEmail("aalex@cbt.com")
-                .orElseThrow(()->new ResourceNotFoundException("No such user"));
-        
-        examTakenRepository.save(
-                new ExamTaken()
-                        .setExam(examN103)
-                        .setResponses(new ArrayList<>(){{
-                            add(new QuestionResponse().setUserChoice("Me")
-                                                      .setText("How are you?")
-                                                      .setAnswer("Me")
-                                                      .setOptions(List.of("Hello", "Me", "You", "Him"))
-                                                      .setPoint(5)
-                            );
-                            add(new QuestionResponse().setUserChoice("Him")
-                                                      .setText("Who is she?")
-                                                      .setAnswer("Her")
-                                                      .setOptions(List.of("Her", "Him", "They", "Them"))
-                                                      .setPoint(3)
-                            );
-                            add(new QuestionResponse().setUserChoice("it")
-                                                      .setText("Who is he?")
-                                                      .setAnswer("It")
-                                                      .setOptions(List.of("You", "Me", "Them", "It"))
-                                                      .setPoint(2)
-                            );
-                        }})
-                        .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0))
-        );
-    
-        ExamTakenRequest examTakenRequest = new ExamTakenRequest()
-                .setExamId(examN103.getId())
-                .setResponses(new ArrayList<>(){{
-                    add(new QuestionResponse().setUserChoice("Me")
-                                              .setText("How are you?")
-                                              .setAnswer("Me")
-                                              .setOptions(List.of("Hello", "Me", "You", "Him"))
-                                              .setPoint(5)
-                    );
-                    add(new QuestionResponse().setUserChoice("Him")
-                                              .setText("Who is she?")
-                                              .setAnswer("Her")
-                                              .setOptions(List.of("Her", "Him", "They", "Them"))
-                                              .setPoint(3)
-                    );
-                    add(new QuestionResponse().setUserChoice("it")
-                                              .setText("Who is he?")
-                                              .setAnswer("It")
-                                              .setOptions(List.of("You", "Me", "Them", "It"))
-                                              .setPoint(2)
-                    );
-                }})
-                .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0));
-    
-        examTakenRepository.saveAll(List.of(
-                ExamTakenMapper.toExamTaken(examTakenRequest)
-                               .setUser(alice)
-                               .setTotalPoints(75.0)
-                               .setPassed(true)
-                               .setExam(examN103)
-        ));
-    
-    
-        Optional<ExamTaken> examsByUser = examTakenRepository.findOneByUserIdAndExamId(alice, examN103);
-        assertThat(examsByUser).isPresent();
-    
-        Exam nonExistentExam = examRepository.save(
-                ExamMapper.toExam(getExam("N101",List.of("aalex@cbt.com","bobreed@cbt.com")))
-        );
-        Optional<ExamTaken> examsByNonExistentExam = examTakenRepository.findOneByUserIdAndExamId(alice, nonExistentExam);
-        assertThat(examsByNonExistentExam).isEmpty();
+    public void findByUserAndExamTest(){
+        takeExam(N101, alice);
+
+        Optional<ExamTaken> examsByAlice = examTakenRepository.findOneByUserAndExam(alice, N101);
+        assertThat(examsByAlice).isPresent();
+
+        Optional<ExamTaken> examsByBob = examTakenRepository.findOneByUserAndExam(bob, N101);
+        assertThat(examsByBob).isEmpty();
+
     }
-    
-    private ExamRequest getExam(String examNumber, List<String> candidateEmails){
-        return new ExamRequest()
-                .setExamNumber(examNumber)
-                .setName("Nexam")
-                .setPassMark(3)
-                .setDescription("Quisque porta volutpat erat. Quisque erat eros, viverra eget, congue eget, semper rutrum, nulla. Nunc purus.")
-                .setInstructions("Duis consequat dui nec nisi volutpat eleifend. Donec ut dolor. Morbi vel lectus in quam fringilla rhoncus. Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci.")
-                .setStart(LocalDateTime.of(1992, 12, 12, 12, 0))
-                .setDuration(5000)
-                .setTimed(true)
-                .setQuestions(getExamQuestions())
-                .setCandidates(new HashSet<>(){
-                    {
-                        addAll(candidateEmails);
-                        //add("aalex@cbt.com");
-                        //add("bobreed@cbt.com");
-                    }
-                });
-    }
+
+//    @Test
+//    public void findAllByExamOwnerTest(){
+//        takeExam(N101, alice);
+//        takeExam(N102, bob);
+//
+//        List<ExamTaken> examsByFlexisaf = examTakenRepository.findAllByExamOwnerId(flexisaf.getId());
+//        assertThat(examsByFlexisaf.size()).isEqualTo(2);
+//
+//        List<ExamTaken> examsByAlice = examTakenRepository.findAllByExamOwnerId(alice.getId());
+//        assertThat(examsByAlice.size()).isEqualTo(0);
+//    }
+
     private List<Question> getExamQuestions(){
         return List.of(
                 new Question()
@@ -384,5 +123,89 @@ public class ExamTakenRepositoryTest {
                         .setOptions(List.of("You", "Me", "Them", "It"))
                         .setAnswer("It")
         );
+    }
+
+    private Exam getExam(String examNumber){
+        return new Exam()
+                .setExamNumber(examNumber)
+                .setOwner(flexisaf)
+                .setName("Nexam")
+                .setPassMark(3)
+                .setDescription("Quisque porta volutpat erat. Quisque erat eros, viverra eget, congue eget, semper rutrum, nulla. Nunc purus.")
+                .setInstructions("Duis consequat dui nec nisi volutpat eleifend. Donec ut dolor. Morbi vel lectus in quam fringilla rhoncus. Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci.")
+                .setStart(LocalDateTime.of(1992, 12, 12, 12, 0))
+                .setDuration(5000)
+                .setTimed(true)
+                .setQuestions(getExamQuestions())
+                .setOpen(true);
+    }
+
+    private User createAndReturnTestOwner(){
+        User flexisaf = new User()
+                .setEmail("admin@flexisaf.com")
+                .setPassword("administrator")
+                .setName("flexisaf")
+                .setRole(Role.TESTOWNER)
+                .setEnabled(true);
+        return userRepository.save(flexisaf);
+    }
+
+    private Map<String, User> createAndReturnCandidates(){
+        User alice = new User()
+                .setName("Alice Alex")
+                .setEmail("aalex@cbt.com")
+                .setPassword("aliceAlex123")
+                .setRole(Role.CANDIDATE)
+                .setEnabled(true);
+        User bob = new User()
+                .setName("Robert Reed")
+                .setEmail("bobreed@cbt.com")
+                .setPassword("bobbyreeder12")
+                .setRole(Role.CANDIDATE)
+                .setEnabled(true);
+
+        List<User> users = userRepository.saveAll(List.of(alice, bob));
+
+        return Map.of(users.get(0).getUsername(), users.get(0), users.get(1).getUsername(), users.get(1));
+    }
+
+    private Map<String, Exam> createAndReturnExams(){
+        Exam examN101 = getExam("N101")
+                .setCandidates(Set.of(alice, bob));
+
+        Exam examN102 = getExam("N102")
+                .setCandidates(Set.of(alice));
+        List<Exam> exams = examRepository.saveAll(List.of(examN101, examN102));
+
+        return Map.of(exams.get(0).getExamNumber(), exams.get(0), exams.get(1).getExamNumber(), exams.get(1));
+    }
+
+    private void takeExam(Exam exam, User user){
+        ExamTaken takenExam = new ExamTaken()
+                .setExam(exam)
+                .setResponses(new ArrayList<>(){{
+                    add(new QuestionResponse().setUserChoice("Me")
+                            .setText("How are you?")
+                            .setAnswer("Me")
+                            .setOptions(List.of("Hello", "Me", "You", "Him"))
+                            .setPoint(5)
+                    );
+                    add(new QuestionResponse().setUserChoice("Him")
+                            .setText("Who is she?")
+                            .setAnswer("Her")
+                            .setOptions(List.of("Her", "Him", "They", "Them"))
+                            .setPoint(3)
+                    );
+                    add(new QuestionResponse().setUserChoice("it")
+                            .setText("Who is he?")
+                            .setAnswer("It")
+                            .setOptions(List.of("You", "Me", "Them", "It"))
+                            .setPoint(2)
+                    );
+                }})
+                .setUserStartTime(LocalDateTime.of(1992, 12, 12, 12, 0))
+                .setUser(user);
+
+        examTakenRepository.save(takenExam);
     }
 }

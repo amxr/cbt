@@ -38,8 +38,8 @@ public class UserController {
 
     @GetMapping
     @SecurityRequirement(name = "cbt")
-    @Operation(summary = "This is used to get a users detail (must be logged in")
-    public List<UserDto> getAll(@Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
-        return userService.getAll(userDetails);
+    @Operation(summary = "This is used to get all users detail (for admin)")
+    public List<UserDto> getAll(){
+        return userService.getAll();
     }
 }
