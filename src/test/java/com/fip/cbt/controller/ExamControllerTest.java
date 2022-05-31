@@ -177,7 +177,7 @@ class ExamControllerTest {
 
         MvcResult result = mockMvc
                 .perform(get(URI+"/"+newExam.getExamNumber()))
-                .andExpect(status().isFound())
+                .andExpect(status().isOk())
                 .andReturn();
 
         String content = result.getResponse().getContentAsString();
