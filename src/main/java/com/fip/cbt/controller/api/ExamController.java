@@ -40,7 +40,6 @@ public class ExamController {
 
     @Operation(summary = "This is used to find an exam by its unique number")
     @GetMapping("/{examNumber}")
-    @ResponseStatus(HttpStatus.FOUND)
     public Exam getOne(@PathVariable String examNumber, @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails){
         return examService.getOne(examNumber, userDetails);
     }

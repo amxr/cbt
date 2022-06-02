@@ -47,7 +47,7 @@ public class ExamRequest {
     @JsonProperty("timed")
     private boolean isTimed;
 
-    @NotNull(message = "timed cannot be empty")
+    @NotNull(message = "indicate if open or not")
     @JsonProperty("open")
     private boolean isOpen;
 
