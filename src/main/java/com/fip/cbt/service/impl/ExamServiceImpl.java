@@ -136,7 +136,7 @@ public class ExamServiceImpl implements ExamService {
         if(exam.getRegisteredCandidates() == null){
             exam.setRegisteredCandidates(Set.of(user));
         }else{
-            exam.setRegisteredCandidates().add(user);
+            exam.getRegisteredCandidates().add(user);
         }
         
         return examRepository.save(exam);

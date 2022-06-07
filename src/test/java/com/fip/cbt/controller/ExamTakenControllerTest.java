@@ -120,7 +120,7 @@ public class ExamTakenControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.error_message").value("403 FORBIDDEN \"You are not allowed to take this exam.\""))
+                .andExpect(jsonPath("$.error_message").value("403 FORBIDDEN \"User has not registered or has not been approved.\""))
                 .andExpect(jsonPath("$.error_code").value("403 FORBIDDEN"));
     }
 
