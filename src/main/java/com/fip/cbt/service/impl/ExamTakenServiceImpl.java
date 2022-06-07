@@ -74,7 +74,7 @@ public class ExamTakenServiceImpl implements ExamTakenService {
         );
 
         if(user.getRole() == Role.TESTOWNER && !taken.getExam().getOwner().equals(user)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This exam does not belong to you.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credentials unauthorised for such action");
         }
 
         return taken;
@@ -88,7 +88,7 @@ public class ExamTakenServiceImpl implements ExamTakenService {
                 () -> new ResourceNotFoundException("Exam with number " + id + " not found.")
         );
         if(!taken.getExam().getOwner().equals(user)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This exam does not belong to you.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credentials unauthorised for such action");
         }
         examTakenRepository.delete(taken);
     }

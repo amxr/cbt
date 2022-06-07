@@ -57,13 +57,13 @@ public class ExamServiceImpl implements ExamService {
                 );
         if(user.getRole().equals(Role.TESTOWNER)){
             if(!exam.getOwner().equals(user)){
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This exam does not belong to you.");
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credentials unauthorised for such action");
             }
         }
 
         if(user.getRole().equals(Role.CANDIDATE)){
             if(LocalDateTime.now().isBefore(exam.getStart())){
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can't access this exam before time.");
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Access denied before scheduled time.");
             }
             if(!exam.getCandidates().contains(user)){
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not allowed to access this exam");
@@ -83,7 +83,7 @@ public class ExamServiceImpl implements ExamService {
                         () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found.")
                 );
         if(!exam.getOwner().equals(user)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This exam does not belong to you.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credentials unauthorised for such action");
         }
         examRepository.delete(exam);
     }
@@ -99,7 +99,7 @@ public class ExamServiceImpl implements ExamService {
                 );
 
         if(!_exam.getOwner().equals(user)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This exam does not belong to you.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credentials unauthorised for such action");
         }
 
         Exam exam = ExamMapper.toExam(updateExamRequest);
@@ -136,7 +136,7 @@ public class ExamServiceImpl implements ExamService {
         if(exam.getRegisteredCandidates() == null){
             exam.setRegisteredCandidates(Set.of(user));
         }else{
-            exam.getCandidates().add(user);
+            exam.setRegisteredCandidates().add(user);
         }
         
         return examRepository.save(exam);
@@ -152,7 +152,7 @@ public class ExamServiceImpl implements ExamService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist."));
 
         if(!exam.getOwner().equals(user)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This exam does not belong to you.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credentials unauthorised for such action");
         }
 
         Set<User> candidates = approvedCandidates.stream().map(c -> {
@@ -161,7 +161,7 @@ public class ExamServiceImpl implements ExamService {
         }).collect(Collectors.toSet());
 
         if(exam.getCandidates() == null){
-            exam.setRegisteredCandidates(candidates);
+            exam.setCandidates(candidates);
         }else {
             exam.getCandidates().addAll(candidates);
         }
