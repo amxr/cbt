@@ -1,39 +1,36 @@
 package com.fip.cbt.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
 @ToString
-@Document("user")
-@EqualsAndHashCode
+@Entity
+@Table(name = "users_table")
 @Accessors(chain = true)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class User implements UserDetails {
     @Id
+    @SequenceGenerator(name = "user_sequence", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_sequence")
     @Getter
     @Setter
-    private String id;
+    private long id;
 
     @Setter
-    @Indexed(unique = true)
-    @JsonProperty("email")
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Getter
@@ -47,7 +44,7 @@ public class User implements UserDetails {
     private boolean isEnabled;
 
     @Getter
-    @CreatedDate
+    @CreationTimestamp
     private LocalDateTime dateAdded;
 
     @Getter

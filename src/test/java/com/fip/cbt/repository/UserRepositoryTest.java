@@ -1,21 +1,17 @@
 package com.fip.cbt.repository;
 
-import com.fip.cbt.model.Exam;
 import com.fip.cbt.model.Role;
 import com.fip.cbt.model.User;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataMongoTest
-@ExtendWith(MockitoExtension.class)
+@DataJpaTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UserRepositoryTest {
     @Autowired
@@ -31,7 +27,7 @@ public class UserRepositoryTest {
         User alice = new User().setName("Alice Alex")
                                .setEmail("aalex@cbt.com")
                                .setPassword("aliceAlex123")
-                               .setRole(Role.CANDIDATE);
+                               .setRole(Role.TESTOWNER);
         User bob = new User().setName("Robert Reed")
                              .setEmail("bobreed@cbt.com")
                              .setPassword("bobbyreeder1")
@@ -84,9 +80,12 @@ public class UserRepositoryTest {
     @Test
     public void findUserByRoleTest(){
         List<User> findCandidates = userRepository.findUserByRole(Role.CANDIDATE);
-        assertThat(findCandidates.size()).isEqualTo(2);
+        assertThat(findCandidates.size()).isEqualTo(1);
         
         List<User> findAdmin = userRepository.findUserByRole(Role.ADMINISTRATOR);
         assertThat(findAdmin.size()).isEqualTo(1);
+
+        List<User> findTestOwner = userRepository.findUserByRole(Role.TESTOWNER);
+        assertThat(findTestOwner.size()).isEqualTo(1);
     }
 }
