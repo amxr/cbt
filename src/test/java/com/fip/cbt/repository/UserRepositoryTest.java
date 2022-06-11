@@ -12,15 +12,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
-
-    @BeforeAll
-    void beforeAll(){
-        userRepository.deleteAll();
-    }
     
     @BeforeEach
     void setUp(){
