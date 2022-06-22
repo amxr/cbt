@@ -8,6 +8,7 @@ import com.fip.cbt.model.User;
 import com.fip.cbt.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -64,5 +65,10 @@ public class UserService implements UserDetailsService {
         return users.stream()
                 .map(mapper::toUserDto)
                 .collect(Collectors.toList());
+    }
+
+    public User getUser(){
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userRepository.findUserByEmail(userDetails.getUsername()).orElseThrow();
     }
 }

@@ -13,7 +13,9 @@ import java.util.Optional;
 @Repository
 public interface ExamRepository extends MongoRepository<Exam, String> {
 
-    Optional<Exam> findExamByExamNumber(String examNumber);
+    Optional<Exam> findByExamNumber(String examNumber);
+
+    Boolean existsByExamNumber(String examNumber);
 
     List<Exam> findAllByOwner(User owner);
 

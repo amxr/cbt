@@ -51,9 +51,6 @@ public class ExamRequest {
     @JsonProperty("open")
     private boolean isOpen;
 
-    @JsonProperty("candidate_emails")
-    Set<User> candidates;
-
     @NotEmpty(message = "Questions cannot be empty!")
     private List<@Valid Question> questions;
 }

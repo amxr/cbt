@@ -259,7 +259,7 @@ class ExamControllerTest {
                 .setTimed(false);
 
         MvcResult updatedResult = mockMvc.perform(
-                        put(URI)
+                        put(URI + "/update/" + newExam.getExamNumber())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(mapToJson(exam))
                                 .accept(MediaType.APPLICATION_JSON))
