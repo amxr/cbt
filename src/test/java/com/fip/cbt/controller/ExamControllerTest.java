@@ -84,7 +84,7 @@ class ExamControllerTest {
 
     @Test
     @WithMockUser(username = "admin@flexisaf.com", password = "administrator", authorities = {"TESTOWNER"})
-    void addExamTest() throws Exception {
+    void addExamAndQuestionsTest() throws Exception {
         ExamRequest newExam = getExam();
         mockMvc.perform(
                 post(URI)
@@ -94,24 +94,36 @@ class ExamControllerTest {
                 .andExpect(status().isCreated());
 
         mockMvc.perform(
-                        post(URI)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapToJson(newExam))
-                                .accept(MediaType.APPLICATION_JSON))
+                post(URI)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapToJson(newExam))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error_message").value("Exam with number " + newExam.getExamNumber() + " already exists."))
                 .andExpect(jsonPath("$.error_code").value("CONFLICT"));
 
+        mockMvc.perform(get(URI+"/"+newExam.getExamNumber()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.exam_number").value(newExam.getExamNumber()))
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.description").value(newExam.getDescription()));
+
+        mockMvc.perform(
+                post(URI + "/" + newExam.getExamNumber() + "/add-questions")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapToJson(getExamQuestions()))
+                    .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
         MvcResult result = mockMvc.perform(get(URI+"/"+newExam.getExamNumber()))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        Exam exam = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
-        assertNotNull(exam);
-        assertEquals(exam.getQuestions().size(), newExam.getQuestions().size());
-        assertEquals(exam.getExamNumber(), newExam.getExamNumber());
-        assertThat(exam.getCandidates()).isNullOrEmpty();
+        String content = result.getResponse().getContentAsString();
+        Exam exam = mapFromJson(content, Exam.class);
+
+        assertThat(exam.getQuestions().size()).isEqualTo(getExamQuestions().size());
     }
 
     @Test
@@ -160,23 +172,17 @@ class ExamControllerTest {
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated());
 
-        MvcResult result = mockMvc
+        mockMvc
                 .perform(get(URI+"/"+newExam.getExamNumber()))
                 .andExpect(status().isOk())
-                .andReturn();
-
-        String content = result.getResponse().getContentAsString();
-        Exam exam = mapFromJson(content, Exam.class);
-
-        assertEquals(exam.getExamNumber(), newExam.getExamNumber());
-        assertEquals(exam.getQuestions().size(), newExam.getQuestions().size());
-        assertEquals(exam.getName(), newExam.getName());
+                .andExpect(jsonPath("$.exam_number").value(newExam.getExamNumber()))
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.description").value(newExam.getDescription()));
     }
 
     @Test
     @WithMockUser(username = "admin@flexisaf.com", password = "administrator", authorities = {"TESTOWNER"})
     void deleteExamTest() throws Exception{
-        //TODO: Review this test
         ExamRequest newExam = getExam();
         mockMvc.perform(delete(URI+"/"+newExam.getExamNumber()))
                 .andExpect(status().isNotFound())
@@ -196,67 +202,46 @@ class ExamControllerTest {
                 .perform(delete(URI+"/"+newExam.getExamNumber()))
                 .andExpect(status().isOk());
 
-        MvcResult result = mockMvc.perform(get(URI))
+        mockMvc
+                .perform(get(URI+"/"+newExam.getExamNumber()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error_message").value("Exam with number " + newExam.getExamNumber() + " not found."))
+                .andExpect(jsonPath("$.error_code").value("NOT_FOUND"));
+
+    }
+
+    @Test
+    @WithMockUser(username = "admin@flexisaf.com", password = "administrator", authorities = {"TESTOWNER"})
+    void updateExamTest() throws Exception{
+        ExamRequest newExam = getExam();
+        mockMvc.perform(
+                        post(URI)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapToJson(newExam))
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+
+        MvcResult result = mockMvc
+                .perform(get(URI+"/"+newExam.getExamNumber()))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String content = result.getResponse().getContentAsString();
-        Exam[] exams = mapFromJson(content, Exam[].class);
-        assertEquals(0, exams.length);
+        Exam exam = mapFromJson(content, Exam.class);
+        exam
+                .setExamNumber("S101")
+                .setPassMark(400);
+        mockMvc.perform(
+                put(URI + "/update/"+newExam.getExamNumber())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapToJson(exam))
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(exam.getId()))
+                .andExpect(jsonPath("$.exam_number").value("S101"))
+                .andExpect(jsonPath("$.pass_mark").value(400));
     }
-
-//    @Test
-//    @WithMockUser(username = "admin@flexisaf.com", password = "administrator", authorities = {"TESTOWNER"})
-//    void updateExamTest() throws Exception{
-//        ExamRequest newExam = getExam();
-//        mockMvc.perform(
-//                        post(URI)
-//                                .contentType(MediaType.APPLICATION_JSON)
-//                                .content(mapToJson(newExam))
-//                                .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isCreated());
-//
-//        MvcResult result = mockMvc
-//                .perform(get(URI+"/"+newExam.getExamNumber()))
-//                .andExpect(status().isOk())
-//                .andReturn();
-//
-//        String content = result.getResponse().getContentAsString();
-//        Exam exam = mapFromJson(content, Exam.class);
-//
-//        Question newQ = new Question()
-//                .setText("Who is the president?")
-//                .setPoint(9)
-//                .setOptions(List.of("Hello", "Me", "You", "Him"))
-//                .setAnswer("Me");
-//
-//        List<Question> questions = new ArrayList<>(getExamQuestions());
-//        questions.add(newQ);
-//        exam
-//                .setExamNumber("A202")
-//                .setName("Art")
-//                .setQuestions(questions)
-//                .setTimed(false);
-//
-//        MvcResult updatedResult = mockMvc.perform(
-//                        put(URI)
-//                                .contentType(MediaType.APPLICATION_JSON)
-//                                .content(mapToJson(exam))
-//                                .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(jsonPath("$.id").isString())
-//                .andReturn();
-//
-//        String updatedContent = updatedResult.getResponse().getContentAsString();
-//        Exam updatedExam = mapFromJson(updatedContent, Exam.class);
-//
-//        assertEquals(updatedExam.getId(), exam.getId());
-//        assertNotEquals(updatedExam.getExamNumber(), newExam.getExamNumber());
-//        assertNotEquals(updatedExam.getName(), newExam.getName());
-//        assertNotEquals(updatedExam.getQuestions().size(), newExam.getQuestions().size());
-//        assertNotEquals(updatedExam.isTimed(), newExam.isTimed());
-//    }
 
     @Test
     @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
@@ -265,11 +250,12 @@ class ExamControllerTest {
         examRepository.save(new Exam()
                                     .setExamNumber(newExam.getExamNumber()));
 
-        MvcResult result = mockMvc.perform(
+        mockMvc.perform(
                 patch(URI+"/"+newExam.getExamNumber()+"/register/"))
-                .andReturn();
+                .andExpect(status().isOk());
 
-        Exam exam = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
+        Exam exam = examRepository.findByExamNumberIgnoreCase(newExam.getExamNumber()).orElseThrow();
+
         assertNotNull(exam);
         assertThat(exam.getRegisteredCandidates().size()).isEqualTo(1);
     }
@@ -287,11 +273,11 @@ class ExamControllerTest {
                              .setRole(Role.CANDIDATE);
 
         List<User> users = userRepository.saveAll(List.of(charlie, dave));
-        User alice = userRepository.findUserByEmail("aalex@cbt.com").orElseThrow();
-        User bob = userRepository.findUserByEmail("bobreed@cbt.com").orElseThrow();
+        User alice = userRepository.findUserByEmailIgnoreCase("aalex@cbt.com").orElseThrow();
+        User bob = userRepository.findUserByEmailIgnoreCase("bobreed@cbt.com").orElseThrow();
         Set<User> usersSet = Set.of(users.get(0), users.get(1), alice, bob);
 
-       User flexisaf = userRepository.findUserByEmail("admin@flexisaf.com").orElseThrow();
+       User flexisaf = userRepository.findUserByEmailIgnoreCase("admin@flexisaf.com").orElseThrow();
 
         ExamRequest newExam = getExam();
         Exam exam = ExamMapper.toExam(newExam)
@@ -305,46 +291,24 @@ class ExamControllerTest {
 
         Set<String> approvedCandidates = Set.of("bobreed@cbt.com", "ccousy@cbt.com");
 
-        MvcResult result = mockMvc.perform(
+        mockMvc.perform(
                                           patch(URI+"/"+newExam.getExamNumber()+"/candidates/approve")
                                                   .contentType(MediaType.APPLICATION_JSON)
                                                   .content(mapToJson(approvedCandidates))
-                                                  .accept(MediaType.APPLICATION_JSON))
-                                  .andReturn();
+                                                  .accept(MediaType.APPLICATION_JSON));
 
-        Exam examResult = mapFromJson(result.getResponse().getContentAsString(), Exam.class);
+        MvcResult result = mockMvc.perform(get(URI+"/"+newExam.getExamNumber()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        Exam examResult = mapFromJson(content, Exam.class);
+
         assertNotNull(examResult);
         assertThat(examResult.getCandidates().size()).isEqualTo(2);
         assertThat(examResult.getRegisteredCandidates().size()).isEqualTo(2);
     }
 
-//    @Test
-//    void setContainsTest(){
-//        ExamRequest newExam = getExam();
-//        Set<String> containedCandidate = new HashSet<>(){
-//            {
-//                add("aalex@cbt.com");
-//            }
-//        };
-//        assertThat(containedCandidate.equals(newExam.getCandidateRequests())).isFalse();
-//
-//        Set<String> notContainedCandidate = new HashSet<>(){
-//            {
-//                add("johndoe@cbt.com");
-//            }
-//        };
-//        assertThat(notContainedCandidate.equals(newExam.getCandidateRequests())).isFalse();
-//
-//        Set<String> containsAllCandidates = new HashSet<>(){
-//            {
-//                add("aalex@cbt.com");
-//                add("bobreed@cbt.com");
-//            }
-//        };
-//        assertThat(containsAllCandidates.equals(newExam.getCandidateRequests())).isTrue();
-//
-//    }
-//
     private List<Question> getExamQuestions(){
         return List.of(
                 new Question()
@@ -375,7 +339,6 @@ class ExamControllerTest {
                 .setStart(LocalDateTime.of(1992, 12, 12, 12, 0))
                 .setDuration(5000)
                 .setTimed(true)
-                .setQuestions(getExamQuestions())
                 .setOpen(true);
     }
 

@@ -1,5 +1,6 @@
 package com.fip.cbt.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
@@ -38,13 +39,16 @@ public class User implements UserDetails {
     private String name;
 
     @Setter
+    @JsonIgnore
     private String password;
 
     @Setter
+    @JsonIgnore
     private boolean isEnabled;
 
     @Getter
     @CreationTimestamp
+    @JsonIgnore
     private LocalDateTime dateAdded;
 
     @Getter
@@ -52,6 +56,7 @@ public class User implements UserDetails {
     private Role role;
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
@@ -67,16 +72,19 @@ public class User implements UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }

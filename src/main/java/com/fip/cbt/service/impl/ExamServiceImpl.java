@@ -1,7 +1,6 @@
 package com.fip.cbt.service.impl;
 
 import com.fip.cbt.controller.request.ExamRequest;
-import com.fip.cbt.controller.request.UpdateExamRequest;
 import com.fip.cbt.exception.ResourceAlreadyExistsException;
 import com.fip.cbt.exception.ResourceNotFoundException;
 import com.fip.cbt.dto.mapper.ExamMapper;
@@ -15,7 +14,6 @@ import com.fip.cbt.repository.UserRepository;
 import com.fip.cbt.service.ExamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -36,47 +34,42 @@ public class ExamServiceImpl implements ExamService {
     @Autowired
     QuestionRepository questionRepository;
 
+    @Autowired
+    private UserService userService;
+
 
     @Override
-    public void add(ExamRequest examRequest, UserDetails userDetails) {
-        User user = userRepository.findUserByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist."));
+    public void add(ExamRequest examRequest) {
+        User user = userService.getUser();
 
-        if(examRepository.findExamByExamNumber(examRequest.getExamNumber()).isPresent())
+        if(examRepository.findByExamNumberIgnoreCase(examRequest.getExamNumber()).isPresent())
             throw new ResourceAlreadyExistsException("Exam with number " + examRequest.getExamNumber() + " already exists.");
 
         Exam exam = ExamMapper.toExam(examRequest);
         exam.setOwner(user);
-        Exam savedExam = examRepository.save(exam);
-
-        List<Question> questions = examRequest.getQuestions()
-                .stream().map(q -> q.setExam(savedExam))
-                .collect(Collectors.toList());
-
-        List<Question> savedQuestions = questionRepository.saveAll(questions);
+        examRepository.save(exam);
     }
 
     @Override
-    public Exam getOne(String examNumber, UserDetails userDetails) {
-        User user = userRepository.findUserByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist."));
+    public Exam getOne(String examNumber) {
+        User user = userService.getUser();
 
-        Exam exam = examRepository.findExamByExamNumber(examNumber)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found.")
-                );
         if(user.getRole().equals(Role.TESTOWNER)){
-            if(!exam.getOwner().equals(user)){
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credentials unauthorised for such action");
-            }
+            return examRepository.findByExamNumberIgnoreCaseAndOwner(examNumber, user)
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found.")
+                    );
         }
 
+        Exam exam = new Exam();
         if(user.getRole().equals(Role.CANDIDATE)){
+            exam = examRepository.findByExamNumberIgnoreCaseAndCandidates(examNumber, user)
+                    .orElseThrow(
+                            () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not allowed to access this exam")
+                    );
+
             if(LocalDateTime.now().isBefore(exam.getStart())){
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Access denied before scheduled time.");
-            }
-            if(!exam.getCandidates().contains(user)){
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not allowed to access this exam");
             }
         }
 
@@ -84,46 +77,41 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public void delete(String examNumber, UserDetails userDetails) {
-        User user = userRepository.findUserByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist."));
+    public void delete(String examNumber) {
+        User user = userService.getUser();
 
-        Exam exam = examRepository.findExamByExamNumber(examNumber)
+        Exam exam = examRepository.findByExamNumberIgnoreCaseAndOwner(examNumber, user)
                 .orElseThrow(
-                        () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found.")
-                );
-        if(!exam.getOwner().equals(user)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credentials unauthorised for such action");
-        }
+                        () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found."));
         examRepository.delete(exam);
     }
 
     @Override
-    public Exam update(UpdateExamRequest updateExamRequest, UserDetails userDetails) {
-        User user = userRepository.findUserByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist."));
+    public Exam update(String examNumber, ExamRequest updateExamRequest) {
+        User user = userService.getUser();
 
-        Exam _exam = examRepository.findById(updateExamRequest.getId())
+        Exam exam = examRepository.findByExamNumberIgnoreCaseAndOwner(examNumber, user)
                 .orElseThrow(
-                        () -> new ResourceNotFoundException("Exam not found.")
-                );
+                        () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found."));
 
-        if(!_exam.getOwner().equals(user)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credentials unauthorised for such action");
+        if(!updateExamRequest.getExamNumber().equals(examNumber) && examRepository.existsByExamNumberIgnoreCase(updateExamRequest.getExamNumber())){
+            throw new ResourceAlreadyExistsException("Exam with number: " + updateExamRequest.getExamNumber() + " already exists.");
         }
 
-        Exam exam = ExamMapper.toExam(updateExamRequest);
+        ExamMapper.updateExam(exam, updateExamRequest);
         return examRepository.save(exam);
     }
 
     @Override
-    public List<Exam> getAll(UserDetails userDetails) {
-        User user = userRepository.findUserByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist."));
+    public List<Exam> getAll(Optional<Boolean> approved) {
+        User user = userService.getUser();
 
         System.out.println(user);
         if(user.getRole() == Role.CANDIDATE){
-            return examRepository.findAllByCandidates(user);
+            if(approved.orElse(false))
+                return examRepository.findAllByCandidates(user);
+            else
+                return examRepository.findAllByRegisteredCandidates(user);
         }
 
         if(user.getRole() == Role.TESTOWNER){
@@ -134,15 +122,12 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Exam userRegistration(String examNumber, UserDetails userDetails){
-        Exam exam = examRepository.findExamByExamNumber(examNumber)
+    public Exam userRegistration(String examNumber){
+        User user = userService.getUser();
+
+        Exam exam = examRepository.findByExamNumberIgnoreCase(examNumber)
                 .orElseThrow(
-                        () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found.")
-                );
-
-        User user = userRepository.findUserByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist."));
-
+                        () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found."));
         if(exam.getRegisteredCandidates() == null){
             exam.setRegisteredCandidates(Set.of(user));
         }else{
@@ -152,23 +137,17 @@ public class ExamServiceImpl implements ExamService {
         return examRepository.save(exam);
     }
 
-    public Exam approveCandidates(String examNumber, Set<String> approvedCandidates, UserDetails userDetails){
-        Exam exam = examRepository.findExamByExamNumber(examNumber)
+    public Exam approveCandidates(String examNumber, Set<String> approvedCandidates){
+        User user = userService.getUser();
+
+        Exam exam = examRepository.findByExamNumberIgnoreCaseAndOwner(examNumber, user)
                 .orElseThrow(
-                        () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found.")
-                );
+                        () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found."));
 
-        User user = userRepository.findUserByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist."));
-
-        if(!exam.getOwner().equals(user)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credentials unauthorised for such action");
-        }
-
-        Set<User> candidates = approvedCandidates.stream().map(c -> {
-            return userRepository.findUserByEmail(c)
-                    .orElseThrow(() -> new ResourceNotFoundException("No such user: "+c));
-        }).collect(Collectors.toSet());
+        Set<User> candidates = approvedCandidates.stream().map(c ->
+                userRepository.findUserByEmailIgnoreCase(c)
+                    .orElseThrow(() -> new ResourceNotFoundException("No such user: "+c))
+        ).collect(Collectors.toSet());
 
         if(exam.getCandidates() == null){
             exam.setCandidates(candidates);
@@ -179,5 +158,21 @@ public class ExamServiceImpl implements ExamService {
         exam.getRegisteredCandidates().removeAll(candidates);
 
         return exam;
+    }
+
+    @Override
+    public Exam addQuestions(String examNumber, List<Question> questions) {
+        User user = userService.getUser();
+
+        Exam exam = examRepository.findByExamNumberIgnoreCaseAndOwner(examNumber, user)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found."));
+
+        for(Question question : questions){
+            question.setExam(exam);
+            questionRepository.save(question);
+        }
+
+        return examRepository.getById(exam.getId());
     }
 }

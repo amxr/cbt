@@ -3,6 +3,10 @@ CREATE SEQUENCE  IF NOT EXISTS exam_sequence START WITH 1 INCREMENT BY 1;
 
 CREATE SEQUENCE  IF NOT EXISTS question_sequence START WITH 1 INCREMENT BY 1;
 
+CREATE SEQUENCE  IF NOT EXISTS response_sequence START WITH 1 INCREMENT BY 1;
+
+CREATE SEQUENCE  IF NOT EXISTS taken_exam_sequence START WITH 1 INCREMENT BY 1;
+
 CREATE SEQUENCE  IF NOT EXISTS user_sequence START WITH 1 INCREMENT BY 1;
 
 CREATE TABLE exam (
@@ -47,6 +51,27 @@ CREATE TABLE question_options (
    options TEXT
 );
 
+CREATE TABLE question_response (
+  id BIGINT NOT NULL,
+   taken_exam_id BIGINT,
+   question_id BIGINT,
+   user_choice VARCHAR(255),
+   is_correct BOOLEAN,
+   CONSTRAINT pk_questionresponse PRIMARY KEY (id)
+);
+
+CREATE TABLE taken_exam (
+  id BIGINT NOT NULL,
+   exam_id BIGINT,
+   user_id BIGINT,
+   is_passed BOOLEAN,
+   total_points DOUBLE PRECISION,
+   user_start_time TIMESTAMP WITHOUT TIME ZONE,
+   submission_date TIMESTAMP WITHOUT TIME ZONE,
+   last_modified_on TIMESTAMP WITHOUT TIME ZONE,
+   CONSTRAINT pk_takenexam PRIMARY KEY (id)
+);
+
 CREATE TABLE users_table (
   id BIGINT NOT NULL,
    email VARCHAR(255) NOT NULL,
@@ -62,7 +87,15 @@ ALTER TABLE users_table ADD CONSTRAINT uc_users_table_email UNIQUE (email);
 
 ALTER TABLE exam ADD CONSTRAINT FK_EXAM_ON_OWNER FOREIGN KEY (owner_id) REFERENCES users_table (id);
 
+ALTER TABLE question_response ADD CONSTRAINT FK_QUESTIONRESPONSE_ON_QUESTION FOREIGN KEY (question_id) REFERENCES question (id);
+
+ALTER TABLE question_response ADD CONSTRAINT FK_QUESTIONRESPONSE_ON_TAKEN_EXAM FOREIGN KEY (taken_exam_id) REFERENCES taken_exam (id);
+
 ALTER TABLE question ADD CONSTRAINT FK_QUESTION_ON_EXAM FOREIGN KEY (exam_id) REFERENCES exam (id);
+
+ALTER TABLE taken_exam ADD CONSTRAINT FK_TAKENEXAM_ON_EXAM FOREIGN KEY (exam_id) REFERENCES exam (id);
+
+ALTER TABLE taken_exam ADD CONSTRAINT FK_TAKENEXAM_ON_USER FOREIGN KEY (user_id) REFERENCES users_table (id);
 
 ALTER TABLE exam_candidates ADD CONSTRAINT fk_exacan_on_exam FOREIGN KEY (exam_id) REFERENCES exam (id);
 

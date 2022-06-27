@@ -4,7 +4,7 @@
 //import com.fasterxml.jackson.databind.ObjectMapper;
 //import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 //import com.fip.cbt.CbtApplication;
-//import com.fip.cbt.controller.request.UserLoginRequest;
+//import com.fip.cbt.controller.request.LoginCredentials;
 //import com.fip.cbt.model.Role;
 //import com.fip.cbt.model.User;
 //import com.fip.cbt.repository.UserRepository;
@@ -108,7 +108,7 @@
 //              .andExpect(jsonPath("$.name").value(alice.getName()))
 //              .andReturn();
 //
-//        UserLoginRequest aliceLoginRequest = new UserLoginRequest()
+//        LoginCredentials aliceLoginRequest = new LoginCredentials()
 //                                           .setEmail("aalex@cbt.com")
 //                                           .setPassword("aliceAlex123");
 //

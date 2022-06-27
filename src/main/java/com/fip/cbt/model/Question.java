@@ -2,6 +2,9 @@ package com.fip.cbt.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.OpenAPI31;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.hibernate.Hibernate;
@@ -27,7 +30,7 @@ public class Question {
     private long id;
 
     @ManyToOne
-    @JoinColumn(name="exam_id", nullable=false)
+    @JoinColumn(name="exam_id", nullable=false, referencedColumnName = "id")
     @JsonIgnore
     private Exam exam;
 

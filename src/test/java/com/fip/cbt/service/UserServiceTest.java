@@ -1,7 +1,7 @@
 //package com.fip.cbt.service;
 //
-//import com.fip.cbt.controller.request.NewUserRequest;
-//import com.fip.cbt.controller.request.UserLoginRequest;
+//import com.fip.cbt.controller.request.SignUpRequest;
+//import com.fip.cbt.controller.request.LoginCredentials;
 //import com.fip.cbt.dto.UserDto;
 //import com.fip.cbt.dto.mapper.UserMapper;
 //import com.fip.cbt.model.Role;
@@ -59,7 +59,7 @@
 //
 //    @Test
 //    public void saveUserTest(){
-//        NewUserRequest bobRequest = new NewUserRequest()
+//        SignUpRequest bobRequest = new SignUpRequest()
 //                .setName("Robert Reed")
 //                .setEmail("bobreed@cbt.com")
 //                .setPassword("bobbyreeder12");
@@ -73,7 +73,7 @@
 //
 //    @Test
 //    public void getUserDetailsTest(){
-//        UserLoginRequest bobLoginRequest = new UserLoginRequest()
+//        LoginCredentials bobLoginRequest = new LoginCredentials()
 //                .setEmail("bobreed@cbt.com")
 //                .setPassword("bobbyreeder12");
 //

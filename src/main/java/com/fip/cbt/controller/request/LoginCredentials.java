@@ -8,7 +8,7 @@ import javax.validation.constraints.Size;
 
 @Data
 @Accessors(chain = true)
-public class UserLoginRequest {
+public class LoginCredentials {
     @NotEmpty(message = "Email cannot be empty")
     private String email;
 

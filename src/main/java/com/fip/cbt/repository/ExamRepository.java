@@ -11,9 +11,17 @@ import java.util.Optional;
 @Repository
 public interface ExamRepository extends JpaRepository<Exam, Long> {
 
-    Optional<Exam> findExamByExamNumber(String examNumber);
+    Optional<Exam> findByExamNumberIgnoreCase(String examNumber);
+
+    Boolean existsByExamNumberIgnoreCase(String examNumber);
+
+    Optional<Exam> findByExamNumberIgnoreCaseAndOwner(String examNumber, User owner);
+
+    Optional<Exam> findByExamNumberIgnoreCaseAndCandidates(String examNumber, User candidates);
 
     List<Exam> findAllByOwner(User owner);
 
     List<Exam> findAllByCandidates(User candidate);
+
+    List<Exam> findAllByRegisteredCandidates(User candidate);
 }

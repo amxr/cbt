@@ -25,8 +25,6 @@ public class ExamRepositoryTest {
     @Autowired
     UserRepository userRepository;
 
-    List<Question> questions;
-
     Map<String, User> users;
 
     @BeforeAll
@@ -80,11 +78,11 @@ public class ExamRepositoryTest {
     @Test
     public void findByExamNumberTest(){
 
-        Optional<Exam> findExam = examRepository.findExamByExamNumber("N102");
+        Optional<Exam> findExam = examRepository.findByExamNumberIgnoreCase("n102");
         assertThat(findExam).isPresent();
         assertThat(findExam.get().getExamNumber()).isEqualTo("N102");
 
-        Optional<Exam> findNonExistentExam = examRepository.findExamByExamNumber("N201");
+        Optional<Exam> findNonExistentExam = examRepository.findByExamNumberIgnoreCase("N201");
         assertThat(findNonExistentExam).isEmpty();
     }
 
@@ -104,6 +102,42 @@ public class ExamRepositoryTest {
         assertThat(findExamWithNonExistentOwner.size()).isEqualTo(0);
     }
 
+    @Test
+    public void findByExamNumberIgnoreCaseAndOwnerTest(){
+        Optional<Exam> exam = examRepository.findByExamNumberIgnoreCaseAndOwner("n101", users.get("testowner1"));
+        assertThat(exam.isPresent()).isTrue();
+
+        exam = examRepository.findByExamNumberIgnoreCaseAndOwner("n102", users.get("testowner1"));
+        assertThat(exam.isPresent()).isFalse();
+    }
+
+    @Test
+    public void findByExamNumberIgnoreCaseAndCandidatesTest(){
+        Optional<Exam> exam = examRepository.findByExamNumberIgnoreCaseAndCandidates("n101", users.get("alice"));
+        assertThat(exam.isPresent()).isTrue();
+        System.out.println(exam.get());
+
+        exam = examRepository.findByExamNumberIgnoreCaseAndCandidates("n102", users.get("alice"));
+        assertThat(exam.isPresent()).isFalse();
+    }
+
+    @Test
+    public void findAllByCandidatesTest(){
+        List<Exam> exams = examRepository.findAllByCandidates(users.get("bob"));
+        assertThat(exams.size()).isEqualTo(2);
+
+        exams = examRepository.findAllByCandidates(users.get("amir"));
+        assertThat(exams.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void findAllByRegisteredCandidatesTest(){
+        List<Exam> exams = examRepository.findAllByRegisteredCandidates(users.get("charlie"));
+        assertThat(exams.size()).isEqualTo(2);
+
+        exams = examRepository.findAllByRegisteredCandidates(users.get("amir"));
+        assertThat(exams.size()).isEqualTo(1);
+    }
 
     private void createAndGetQuestions(Exam exam){
         List<Question> questions = List.of(

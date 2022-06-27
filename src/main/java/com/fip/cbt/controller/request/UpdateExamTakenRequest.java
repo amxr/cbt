@@ -10,6 +10,6 @@
 //@Data
 //@Accessors(chain = true)
 //@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-//public class UpdateExamTakenRequest extends ExamTakenRequest {
+//public class UpdateExamTakenRequest extends TakenExamRequest {
 //    private String id;
 //}

@@ -1,7 +1,7 @@
 //package com.fip.cbt.service;
 //
 //import com.fip.cbt.controller.request.ExamRequest;
-//import com.fip.cbt.controller.request.ExamTakenRequest;
+//import com.fip.cbt.controller.request.TakenExamRequest;
 //import com.fip.cbt.exception.ResourceNotFoundException;
 //import com.fip.cbt.mapper.ExamMapper;
 //import com.fip.cbt.mapper.ExamTakenMapper;
@@ -52,7 +52,7 @@
 //        examN101.setCandidates(examRequest.getCandidates());
 //        when(examRepository.findById(any(String.class))).thenReturn(Optional.of(examN101));
 //
-//        ExamTakenRequest newExamTakenRequest = getExamTaken(examN101.getExamNumber());
+//        TakenExamRequest newExamTakenRequest = getExamTaken(examN101.getExamNumber());
 //
 //        User bob = new User()
 //                .setEmail("bobreed@cbt.com")
@@ -91,7 +91,7 @@
 //    @Test
 //    public void getAll(){
 //
-//        ExamTakenRequest examTakenRequest1 = new ExamTakenRequest()
+//        TakenExamRequest examTakenRequest1 = new TakenExamRequest()
 //                .setExamId("examN103Id()")
 //                .setResponses(new ArrayList<>(){{
 //                    add(new QuestionResponse());
@@ -99,7 +99,7 @@
 //                    add(new QuestionResponse());
 //                }});
 //
-//        ExamTakenRequest examTakenRequest2 = new ExamTakenRequest()
+//        TakenExamRequest examTakenRequest2 = new TakenExamRequest()
 //                .setExamId("examN104Id")
 //                .setResponses(new ArrayList<>(){{
 //                    add(new QuestionResponse());
@@ -127,7 +127,7 @@
 //
 //    @Test
 //    public void getAllByUserAndByExamTest(){
-//        ExamTakenRequest examTakenRequest1 = new ExamTakenRequest()
+//        TakenExamRequest examTakenRequest1 = new TakenExamRequest()
 //                .setExamId("examN103Id()")
 //                .setResponses(new ArrayList<>(){{
 //                    add(new QuestionResponse());
@@ -135,7 +135,7 @@
 //                    add(new QuestionResponse());
 //                }});
 //
-//        ExamTakenRequest examTakenRequest2 = new ExamTakenRequest()
+//        TakenExamRequest examTakenRequest2 = new TakenExamRequest()
 //                .setExamId("examN104Id")
 //                .setResponses(new ArrayList<>(){{
 //                    add(new QuestionResponse());
@@ -224,8 +224,8 @@
 //                        .setAnswer("It")
 //        );
 //    }
-//    private ExamTakenRequest getExamTaken(String id){
-//        return new ExamTakenRequest()
+//    private TakenExamRequest getExamTaken(String id){
+//        return new TakenExamRequest()
 //                .setExamId(id)
 //                .setResponses(new ArrayList<>(){{
 //                    add(new QuestionResponse().setUserChoice("Me")

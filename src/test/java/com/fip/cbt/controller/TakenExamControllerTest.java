@@ -4,10 +4,10 @@
 //import com.fasterxml.jackson.databind.ObjectMapper;
 //import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 //import com.fip.cbt.CbtApplication;
-//import com.fip.cbt.controller.request.ExamTakenRequest;
+//import com.fip.cbt.controller.request.TakenExamRequest;
 //import com.fip.cbt.model.*;
 //import com.fip.cbt.repository.ExamRepository;
-//import com.fip.cbt.repository.ExamTakenRepository;
+//import com.fip.cbt.repository.TakenExamRepository;
 //import com.fip.cbt.repository.UserRepository;
 //import org.junit.jupiter.api.*;
 //import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +30,13 @@
 //@AutoConfigureMockMvc
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {CbtApplication.class})
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-//public class ExamTakenControllerTest {
+//public class TakenExamControllerTest {
 //
 //    @Autowired
 //    private MockMvc mockMvc;
 //
 //    @Autowired
-//    private ExamTakenRepository examTakenRepository;
+//    private TakenExamRepository takenExamRepository;
 //
 //    @Autowired
 //    private ExamRepository examRepository;
@@ -68,7 +68,7 @@
 //
 //    @AfterEach
 //    void tearDown(){
-//        examTakenRepository.deleteAll();
+//        takenExamRepository.deleteAll();
 //    }
 //
 //    @AfterAll
@@ -80,7 +80,7 @@
 //    @Test
 //    @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
 //    public void submitIfApprovedCandidateTest() throws Exception {
-//        ExamTakenRequest examTakenRequest = getExamTaken(N101.getId());
+//        TakenExamRequest examTakenRequest = getExamTaken(N101.getId());
 //
 //        MvcResult result = mockMvc.perform(
 //                                          post(URI)
@@ -111,7 +111,7 @@
 //    @Test
 //    @WithMockUser(username = "bobreed@cbt.com", password = "bobbyreeder12", authorities = {"CANDIDATE"})
 //    public void rejectIfNotApprovedCandidateTest() throws Exception {
-//        ExamTakenRequest examTakenRequest = getExamTaken(N102.getId());
+//        TakenExamRequest examTakenRequest = getExamTaken(N102.getId());
 //
 //        mockMvc.perform(
 //                post(URI)
@@ -126,8 +126,8 @@
 //
 //    @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
 //    public void getAllWithNoParametersTest() throws Exception{
-//        ExamTakenRequest examTakenRequest1 = getExamTaken(N101.getId());
-//        ExamTakenRequest examTakenRequest2 = getExamTaken(N102.getId());
+//        TakenExamRequest examTakenRequest1 = getExamTaken(N101.getId());
+//        TakenExamRequest examTakenRequest2 = getExamTaken(N102.getId());
 //
 //        mockMvc.perform(
 //                       post(URI)
@@ -230,8 +230,8 @@
 //        Exam exam2 = examRepository.findExamByExamNumber("N102")
 //                                  .orElseThrow(()->new ResourceNotFoundException("No such exam"));
 //
-//        ExamTakenRequest examTakenRequest1 = getExamTaken(exam1.getId());
-//        ExamTakenRequest examTakenRequest2 = getExamTaken(exam2.getId());
+//        TakenExamRequest examTakenRequest1 = getExamTaken(exam1.getId());
+//        TakenExamRequest examTakenRequest2 = getExamTaken(exam2.getId());
 //
 //        mockMvc.perform(
 //                       post(URI)
@@ -265,8 +265,8 @@
 //        Exam exam2 = examRepository.findExamByExamNumber("N102")
 //                                  .orElseThrow(()->new ResourceNotFoundException("No such exam"));
 //
-//        ExamTakenRequest examTakenRequest1 = getExamTaken(exam1.getId());
-//        ExamTakenRequest examTakenRequest2 = getExamTaken(exam2.getId());
+//        TakenExamRequest examTakenRequest1 = getExamTaken(exam1.getId());
+//        TakenExamRequest examTakenRequest2 = getExamTaken(exam2.getId());
 //
 //        mockMvc.perform(
 //                       post(URI)
@@ -296,7 +296,7 @@
 //    @Test
 //    @WithMockUser(username = "aalex@cbt.com", password = "aliceAlex123", authorities = {"CANDIDATE"})
 //    public void getOneTest() throws Exception {
-//        ExamTakenRequest examTakenRequest = getExamTaken(N101.getId());
+//        TakenExamRequest examTakenRequest = getExamTaken(N101.getId());
 //
 //        //submit exam
 //        MvcResult submitExam = mockMvc.perform(
@@ -444,8 +444,8 @@
 //        return Map.of(exams.get(0).getExamNumber(), exams.get(0), exams.get(1).getExamNumber(), exams.get(1));
 //    }
 //
-//    private ExamTakenRequest getExamTaken(String id){
-//        return new ExamTakenRequest()
+//    private TakenExamRequest getExamTaken(String id){
+//        return new TakenExamRequest()
 //                .setExamId(id)
 //                .setResponses(new ArrayList<>(){{
 //                    add(new QuestionResponse().setUserChoice("Me")

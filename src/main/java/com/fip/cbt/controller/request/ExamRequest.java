@@ -2,14 +2,11 @@ package com.fip.cbt.controller.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fip.cbt.model.Question;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Accessors(chain = true)
@@ -46,7 +43,4 @@ public class ExamRequest {
     @NotNull(message = "indicate if open or not")
     @JsonProperty("open")
     private boolean isOpen;
-
-    @NotEmpty(message = "Questions cannot be empty!")
-    private List<@Valid Question> questions;
 }

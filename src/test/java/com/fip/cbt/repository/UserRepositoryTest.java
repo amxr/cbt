@@ -63,11 +63,11 @@ public class UserRepositoryTest {
     
     @Test
     public void findUserByEmailTest(){
-        Optional<User> findUser = userRepository.findUserByEmail("aalex@cbt.com");
+        Optional<User> findUser = userRepository.findUserByEmailIgnoreCase("aalex@cbt.com");
         assertThat(findUser).isPresent();
         assertThat(findUser.get().getName()).isEqualTo("Alice Alex");
         
-        Optional<User> findNonExistentUser = userRepository.findUserByEmail("emptyuser@cbt.com");
+        Optional<User> findNonExistentUser = userRepository.findUserByEmailIgnoreCase("emptyuser@cbt.com");
         assertThat(findNonExistentUser).isEmpty();
     }
     
