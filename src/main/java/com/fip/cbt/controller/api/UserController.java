@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -30,6 +31,7 @@ public class UserController {
     @GetMapping
     @SecurityRequirement(name = "cbt")
     @Operation(summary = "This is used to get all users detail (for admin)")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<UserDto> getAll(){
         return userService.getAll();
     }

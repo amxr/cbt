@@ -6,6 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -15,21 +16,28 @@ import java.util.Objects;
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ExceptionResponse> methodArgumentNotValid(MethodArgumentNotValidException e){
-//        String fieldName = Objects.requireNonNull(e.getFieldError()).getField();
-//        String defaultMessage = Objects.requireNonNull(e.getFieldError()).getDefaultMessage();
         ExceptionResponse response = new ExceptionResponse()
-                .setErrorCode("BAD_REQUEST")
+                .setErrorCode(HttpStatus.BAD_REQUEST)
                 .setErrorMessage(Objects.requireNonNull(e.getFieldError()).getDefaultMessage())
-                //.setErrorMessage(String.format("Error on field [%s]: %s", fieldName, defaultMessage))
                 .setTimestamp(LocalDateTime.now());
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ExceptionResponse> accessDenied(AccessDeniedException e){
+        ExceptionResponse response = new ExceptionResponse()
+                .setErrorCode(HttpStatus.FORBIDDEN)
+                .setErrorMessage(e.getLocalizedMessage())
+                .setTimestamp(LocalDateTime.now());
+
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ExceptionResponse> responseStatus(ResponseStatusException e){
         ExceptionResponse response = new ExceptionResponse()
-                .setErrorCode(e.getStatus().toString())
+                .setErrorCode(e.getStatus())
                 .setErrorMessage(e.getLocalizedMessage())
                 .setTimestamp(LocalDateTime.now());
 
@@ -39,7 +47,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DateTimeParseException.class)
     public ResponseEntity<ExceptionResponse> dateTimeParse(DateTimeParseException e){
         ExceptionResponse response = new ExceptionResponse()
-                .setErrorCode("BAD_REQUEST")
+                .setErrorCode(HttpStatus.BAD_REQUEST)
                 .setErrorMessage(e.getMessage())
                 .setTimestamp(LocalDateTime.now());
 
@@ -49,7 +57,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceAlreadyExistsException.class)
     public ResponseEntity<ExceptionResponse> resourceAlreadyExists(ResourceAlreadyExistsException e){
         ExceptionResponse response = new ExceptionResponse()
-                .setErrorCode("CONFLICT")
+                .setErrorCode(HttpStatus.CONFLICT)
                 .setErrorMessage(e.getMessage())
                 .setTimestamp(LocalDateTime.now());
 
@@ -59,7 +67,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ExceptionResponse> resourceNotFound(ResourceNotFoundException e){
         ExceptionResponse response = new ExceptionResponse()
-                .setErrorCode("NOT_FOUND")
+                .setErrorCode(HttpStatus.NOT_FOUND)
                 .setErrorMessage(e.getMessage())
                 .setTimestamp(LocalDateTime.now());
 
