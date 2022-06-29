@@ -128,6 +128,7 @@ public class ExamServiceImpl implements ExamService {
         Exam exam = examRepository.findByExamNumberIgnoreCase(examNumber)
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found."));
+
         if(exam.getRegisteredCandidates() == null){
             exam.setRegisteredCandidates(Set.of(user));
         }else{

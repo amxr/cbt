@@ -49,10 +49,10 @@ public class UserService implements UserDetailsService {
     }
 
     public User getUser(){
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return userRepository.findByEmailIgnoreCase(userDetails.getUsername())
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        String.format("User: %s, not found.", userDetails.getUsername())
+                        String.format("User: %s, not found.", email)
                 ));
     }
 }

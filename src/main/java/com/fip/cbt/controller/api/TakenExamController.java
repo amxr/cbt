@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1/exam/taken")
-@SecurityRequirement(name = "cbt")
+@SecurityRequirement(name = "Bearer Authentication")
 public class TakenExamController {
 
     @Autowired
@@ -24,25 +24,25 @@ public class TakenExamController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "This is used to submit a taken exam")
+    @Operation(summary = "submit exam",description = "This is used to submit a taken exam")
     public TakenExam submit(@Valid @RequestBody TakenExamRequest takenExamRequest){
         return takenExamService.submit(takenExamRequest);
     }
 
     @GetMapping
-    @Operation(summary = "This is used to get all taken exams (with certain parameters), (works differently based on user role)")
+    @Operation(summary = "get all taken exam",description = "This is used to get all taken exams (with certain parameters), (works differently based on user role)")
     public List<TakenExam> getAll(){
         return takenExamService.getAll();
     }
 
     @GetMapping("/{examNumber}")
-    @Operation(summary = "This is used to get a taken exam be id")
+    @Operation(summary = "get one taken exam",description = "This is used to get a taken exam be id")
     public TakenExam getOne(@PathVariable String examNumber){
         return takenExamService.getOne(examNumber);
     }
 
     @DeleteMapping("/{examId}")
-    @Operation(summary = "This is used to delete a taken exam by id")
+    @Operation(summary = "delete taken exam",description = "This is used to delete a taken exam by id")
     public void delete(@PathVariable Long examId){
         takenExamService.delete(examId);
     }

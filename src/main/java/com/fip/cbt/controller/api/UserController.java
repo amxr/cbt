@@ -17,6 +17,7 @@ import java.util.List;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1/user")
+@SecurityRequirement(name = "Bearer Authentication")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -29,7 +30,7 @@ public class UserController {
 
     @GetMapping("/all")
     @SecurityRequirement(name = "cbt")
-    @Operation(summary = "This is used to get all users detail (for admin)")
+    @Operation(summary = "get all registered users",description = "This is used to get all users detail (for admin)")
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<UserDto> getAll(){
         return userService.getAll();

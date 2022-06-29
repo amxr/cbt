@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1/auth")
@@ -20,12 +18,13 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "This is used to register a new user")
+    @Operation(summary = "make a new account", description = "This is used to register a new user")
     public JWTToken register(@RequestBody SignUpRequest signUpRequest){
         return authService.register(signUpRequest);
     }
 
     @PostMapping("/login")
+    @Operation(summary = "login")
     public JWTToken login(@RequestBody LoginCredentials loginCredentials){
         return authService.login(loginCredentials);
     }

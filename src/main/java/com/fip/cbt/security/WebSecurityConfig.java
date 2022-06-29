@@ -32,21 +32,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception{
-        // cors & csrf
-        http.cors().and().csrf().disable();
-
-        //exception handling
-        http.exceptionHandling().authenticationEntryPoint(restAuthenticationEntryPoint);
-
-        //session management
-        http
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
-        //matchers
         String URI = "/api/v1/exam";
         String AUTH_URI = "/api/v1/auth";
+
         http
+                .exceptionHandling()
+                .authenticationEntryPoint(restAuthenticationEntryPoint)
+                .and()
+                .cors().and().csrf().disable()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, URI).hasAnyAuthority(Role.TESTOWNER.toString(), Role.CANDIDATE.toString())
                 .antMatchers(HttpMethod.POST, URI).hasAuthority(Role.TESTOWNER.toString())
@@ -61,9 +57,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, URI +"/taken/{examId}").hasAnyAuthority(Role.CANDIDATE.toString(), Role.TESTOWNER.toString())
                 .antMatchers(HttpMethod.DELETE, URI +"/taken/{examId}").hasAuthority(Role.TESTOWNER.toString())
                 .antMatchers(HttpMethod.POST, AUTH_URI +"/register", AUTH_URI).permitAll()
-                .antMatchers("/actuator/**").permitAll();
-
-        http.userDetailsService(userService);
+                .antMatchers("/actuator/**").permitAll()
+                .and()
+                .userDetailsService(userService);
 
         http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
     }
