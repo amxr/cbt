@@ -2,12 +2,14 @@ package com.fip.cbt.controller.api;
 
 import com.fip.cbt.controller.request.LoginCredentials;
 import com.fip.cbt.controller.request.SignUpRequest;
-import com.fip.cbt.dto.UserDto;
+import com.fip.cbt.security.jwt.JWTToken;
 import com.fip.cbt.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @CrossOrigin
@@ -19,12 +21,12 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "This is used to register a new user")
-    public void register(@RequestBody SignUpRequest signUpRequest){
-        authService.register(signUpRequest);
+    public JWTToken register(@RequestBody SignUpRequest signUpRequest){
+        return authService.register(signUpRequest);
     }
 
     @PostMapping("/login")
-    public UserDto login(@RequestBody LoginCredentials loginCredentials){
+    public JWTToken login(@RequestBody LoginCredentials loginCredentials){
         return authService.login(loginCredentials);
     }
 }

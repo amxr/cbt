@@ -145,7 +145,7 @@ public class ExamServiceImpl implements ExamService {
                         () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found."));
 
         Set<User> candidates = approvedCandidates.stream().map(c ->
-                userRepository.findUserByEmailIgnoreCase(c)
+                userRepository.findByEmailIgnoreCase(c)
                     .orElseThrow(() -> new ResourceNotFoundException("No such user: "+c))
         ).collect(Collectors.toSet());
 

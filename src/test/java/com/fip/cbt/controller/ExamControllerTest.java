@@ -273,11 +273,11 @@ class ExamControllerTest {
                              .setRole(Role.CANDIDATE);
 
         List<User> users = userRepository.saveAll(List.of(charlie, dave));
-        User alice = userRepository.findUserByEmailIgnoreCase("aalex@cbt.com").orElseThrow();
-        User bob = userRepository.findUserByEmailIgnoreCase("bobreed@cbt.com").orElseThrow();
+        User alice = userRepository.findByEmailIgnoreCase("aalex@cbt.com").orElseThrow();
+        User bob = userRepository.findByEmailIgnoreCase("bobreed@cbt.com").orElseThrow();
         Set<User> usersSet = Set.of(users.get(0), users.get(1), alice, bob);
 
-       User flexisaf = userRepository.findUserByEmailIgnoreCase("admin@flexisaf.com").orElseThrow();
+       User flexisaf = userRepository.findByEmailIgnoreCase("admin@flexisaf.com").orElseThrow();
 
         ExamRequest newExam = getExam();
         Exam exam = ExamMapper.toExam(newExam)

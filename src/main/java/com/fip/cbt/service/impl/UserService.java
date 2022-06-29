@@ -29,20 +29,16 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findUserByEmailIgnoreCase(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not authenticated."));
+        return userRepository.findByEmailIgnoreCase(username)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        String.format("User: %s, not found.", username)
+                ));
     }
 
-//    public UserDto getUserDetails(LoginCredentials loginCredentials) {
-//        User user = userRepository.findUserByEmailIgnoreCase(loginCredentials.getEmail().toLowerCase())
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist."));
-//
-//        if(!encoder.matches(loginCredentials.getPassword(), user.getPassword())){
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Incorrect credentials.");
-//        }
-//
-//        return UserMapper.toUserDto(user);
-//    }
+    public UserDto getUserDetails() {
+        User user = getUser();
+        return UserMapper.toUserDto(user);
+    }
 
     public List<UserDto> getAll() {
         List<User> users = userRepository.findAll();
@@ -54,6 +50,9 @@ public class UserService implements UserDetailsService {
 
     public User getUser(){
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return userRepository.findUserByEmailIgnoreCase(userDetails.getUsername()).orElseThrow();
+        return userRepository.findByEmailIgnoreCase(userDetails.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        String.format("User: %s, not found.", userDetails.getUsername())
+                ));
     }
 }

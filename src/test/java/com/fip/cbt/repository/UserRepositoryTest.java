@@ -63,23 +63,23 @@ public class UserRepositoryTest {
     
     @Test
     public void findUserByEmailTest(){
-        Optional<User> findUser = userRepository.findUserByEmailIgnoreCase("aalex@cbt.com");
+        Optional<User> findUser = userRepository.findByEmailIgnoreCase("aalex@cbt.com");
         assertThat(findUser).isPresent();
         assertThat(findUser.get().getName()).isEqualTo("Alice Alex");
         
-        Optional<User> findNonExistentUser = userRepository.findUserByEmailIgnoreCase("emptyuser@cbt.com");
+        Optional<User> findNonExistentUser = userRepository.findByEmailIgnoreCase("emptyuser@cbt.com");
         assertThat(findNonExistentUser).isEmpty();
     }
     
     @Test
-    public void findUserByRoleTest(){
-        List<User> findCandidates = userRepository.findUserByRole(Role.CANDIDATE);
+    public void findByRoleTest(){
+        List<User> findCandidates = userRepository.findByRole(Role.CANDIDATE);
         assertThat(findCandidates.size()).isEqualTo(1);
         
-        List<User> findAdmin = userRepository.findUserByRole(Role.ADMINISTRATOR);
+        List<User> findAdmin = userRepository.findByRole(Role.ADMINISTRATOR);
         assertThat(findAdmin.size()).isEqualTo(1);
 
-        List<User> findTestOwner = userRepository.findUserByRole(Role.TESTOWNER);
+        List<User> findTestOwner = userRepository.findByRole(Role.TESTOWNER);
         assertThat(findTestOwner.size()).isEqualTo(1);
     }
 }

@@ -16,19 +16,18 @@ import java.util.List;
 
 @RestController
 @CrossOrigin
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/user")
 public class UserController {
     @Autowired
     private UserService userService;
 
 
-//    @PostMapping
-//    @Operation(summary = "This is used to authenticate a user (login)")
-//    public UserDto getUserDetails(@RequestBody @Valid LoginCredentials loginCredentials){
-//        return userService.getUserDetails(loginCredentials);
-//    }
+    @GetMapping("/info")
+    public UserDto getUserDetails(){
+        return userService.getUserDetails();
+    }
 
-    @GetMapping
+    @GetMapping("/all")
     @SecurityRequirement(name = "cbt")
     @Operation(summary = "This is used to get all users detail (for admin)")
     @PreAuthorize("hasAuthority('ADMIN')")

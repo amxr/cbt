@@ -1,75 +1,76 @@
 package com.fip.cbt.security;
 
 import com.fip.cbt.model.Role;
+import com.fip.cbt.security.jwt.JWTFilter;
 import com.fip.cbt.service.impl.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.cors.CorsConfiguration;
-
-import java.util.List;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(
-        prePostEnabled = true,
-        securedEnabled = true,
-        jsr250Enabled = true
+        prePostEnabled = true
 )
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    PasswordEncoder encoder;
+    private JWTFilter filter;
 
     @Autowired
-    RestAuthenticationEntryPoint restAuthenticationEntryPoint;
-
-    private final String URI = "/api/v1/exam";
-    private final String AUTHURI = "/api/v1/auth";
+    private RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception{
+        // cors & csrf
+        http.cors().and().csrf().disable();
+
+        //exception handling
+        http.exceptionHandling().authenticationEntryPoint(restAuthenticationEntryPoint);
+
+        //session management
         http
-                .httpBasic()
-                .authenticationEntryPoint(restAuthenticationEntryPoint)
-                .and()
-                .csrf().disable().headers().frameOptions().disable()
-                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        //matchers
+        String URI = "/api/v1/exam";
+        String AUTH_URI = "/api/v1/auth";
+        http
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, URI).hasAnyAuthority(Role.TESTOWNER.toString(), Role.CANDIDATE.toString())
                 .antMatchers(HttpMethod.POST, URI).hasAuthority(Role.TESTOWNER.toString())
                 .antMatchers(HttpMethod.PUT, URI + "/update/{examNumber}").hasAuthority(Role.TESTOWNER.toString())
                 .antMatchers(HttpMethod.PUT, URI + "/{examNumber}/add-questions").hasAuthority(Role.TESTOWNER.toString())
-                .antMatchers(HttpMethod.GET, URI+"/{examNumber}").hasAnyAuthority(Role.TESTOWNER.toString(), Role.CANDIDATE.toString())
-                .antMatchers(HttpMethod.PATCH, URI+"/{examNumber}/candidates/approve").hasAnyAuthority(Role.TESTOWNER.toString())
-                .antMatchers(HttpMethod.PATCH, URI+"/{examNumber}/register").hasAnyAuthority(Role.CANDIDATE.toString())
-                .antMatchers(HttpMethod.PATCH, URI+"/{examNumber}").hasAuthority(Role.TESTOWNER.toString())
-                .antMatchers(HttpMethod.POST, URI+"/taken").hasAuthority(Role.CANDIDATE.toString())
-                .antMatchers(HttpMethod.GET, URI+"/taken").hasAnyAuthority(Role.CANDIDATE.toString(), Role.TESTOWNER.toString())
-                .antMatchers(HttpMethod.GET, URI+"/taken/{examId}").hasAnyAuthority(Role.CANDIDATE.toString(), Role.TESTOWNER.toString())
-                .antMatchers(HttpMethod.DELETE, URI+"/taken/{examId}").hasAuthority(Role.TESTOWNER.toString())
-                .antMatchers(HttpMethod.POST, AUTHURI+"/register", AUTHURI).permitAll()
-                .antMatchers("/actuator/**").permitAll()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .antMatchers(HttpMethod.GET, URI +"/{examNumber}").hasAnyAuthority(Role.TESTOWNER.toString(), Role.CANDIDATE.toString())
+                .antMatchers(HttpMethod.PATCH, URI +"/{examNumber}/candidates/approve").hasAnyAuthority(Role.TESTOWNER.toString())
+                .antMatchers(HttpMethod.PATCH, URI +"/{examNumber}/register").hasAnyAuthority(Role.CANDIDATE.toString())
+                .antMatchers(HttpMethod.PATCH, URI +"/{examNumber}").hasAuthority(Role.TESTOWNER.toString())
+                .antMatchers(HttpMethod.POST, URI +"/taken").hasAuthority(Role.CANDIDATE.toString())
+                .antMatchers(HttpMethod.GET, URI +"/taken").hasAnyAuthority(Role.CANDIDATE.toString(), Role.TESTOWNER.toString())
+                .antMatchers(HttpMethod.GET, URI +"/taken/{examId}").hasAnyAuthority(Role.CANDIDATE.toString(), Role.TESTOWNER.toString())
+                .antMatchers(HttpMethod.DELETE, URI +"/taken/{examId}").hasAuthority(Role.TESTOWNER.toString())
+                .antMatchers(HttpMethod.POST, AUTH_URI +"/register", AUTH_URI).permitAll()
+                .antMatchers("/actuator/**").permitAll();
+
+        http.userDetailsService(userService);
+
+        http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
     }
 
+    @Bean
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception{
-        auth
-                .userDetailsService(userService)
-                .passwordEncoder(encoder);
+    public AuthenticationManager authenticationManagerBean() throws Exception{
+        return super.authenticationManagerBean();
     }
 }
