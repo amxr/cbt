@@ -30,7 +30,6 @@ public class Exam {
     private long id;
 
     @ManyToOne
-    @JsonIncludeProperties({"id", "email", "name"})
     private User owner;
 
     @JsonProperty("exam_number")
@@ -50,12 +49,10 @@ public class Exam {
     private LocalDateTime start;
 
     @JsonProperty("registered_candidates")
-    @JsonIncludeProperties({"id", "email", "name"})
     @ManyToMany(fetch = FetchType.EAGER)
     @ToString.Exclude
     private Set<User> registeredCandidates;
 
-    @JsonIncludeProperties({"id", "email", "name"})
     @ManyToMany(fetch = FetchType.EAGER)
     @ToString.Exclude
     private Set<User> candidates;
