@@ -8,4 +8,6 @@ public interface AuthService {
     JWTToken register(SignUpRequest signUpRequest);
 
     JWTToken login(LoginCredentials loginCredentials);
+
+    JWTToken refresh();
 }

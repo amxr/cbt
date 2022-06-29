@@ -28,4 +28,10 @@ public class AuthController {
     public JWTToken login(@RequestBody LoginCredentials loginCredentials){
         return authService.login(loginCredentials);
     }
+
+    @GetMapping("/refresh-token")
+    @Operation(summary = "refresh access token", description = "send request with refresh token to receive new access and refresh tokens")
+    public JWTToken refresh(){
+        return authService.refresh();
+    }
 }

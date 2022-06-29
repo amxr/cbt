@@ -33,6 +33,9 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private AuthenticationManager authManager;
 
+    @Autowired
+    private UserService userService;
+
     @Override
     public JWTToken register(SignUpRequest signUpRequest) {
         if(userRepository.findByEmailIgnoreCase(signUpRequest.getEmail()).isPresent()){
@@ -54,5 +57,11 @@ public class AuthServiceImpl implements AuthService {
         authManager.authenticate(authToken);
 
         return jwtUtil.generateTokens(loginCredentials.getEmail());
+    }
+
+    @Override
+    public JWTToken refresh() {
+        User user = userService.getUser();
+        return jwtUtil.generateTokens(user.getUsername());
     }
 }
