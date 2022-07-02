@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <h1>
+        Confirmation of registration for exam <span th:text="${examNumber}"></span>
+        </h1>
+    </head>
+    <body>
+        <p>
+            Hello, <span th:text="${candidateName}"></span>!
+        </p>
+        <pre>
+            You have successfully registered for exam <span th:text="${examNumber}"></span>.
+            Please check your dashboard or inbox/spam for approval by the test administrator.
+            In case of approval, a reminder will be sent to you <span th:text="${reminderTime}"></span> minutes before the start of the exam.
+            Good luck.
+        </pre>
+        <p>
+            Regards, <br/>
+            <em>T<span th:text="${testOwner}"></span></em>
+        </p>
+    </body>
+</html>

@@ -4,6 +4,7 @@ import com.fip.cbt.controller.request.ExamRequest;
 import com.fip.cbt.exception.ResourceAlreadyExistsException;
 import com.fip.cbt.exception.ResourceNotFoundException;
 import com.fip.cbt.dto.mapper.ExamMapper;
+import com.fip.cbt.model.EmailType;
 import com.fip.cbt.model.Exam;
 import com.fip.cbt.model.Question;
 import com.fip.cbt.model.Role;
@@ -11,6 +12,7 @@ import com.fip.cbt.model.User;
 import com.fip.cbt.repository.ExamRepository;
 import com.fip.cbt.repository.QuestionRepository;
 import com.fip.cbt.repository.UserRepository;
+import com.fip.cbt.service.EmailService;
 import com.fip.cbt.service.ExamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,6 +38,9 @@ public class ExamServiceImpl implements ExamService {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    EmailService emailService;
 
 
     @Override
@@ -133,6 +138,16 @@ public class ExamServiceImpl implements ExamService {
         }else{
             exam.getRegisteredCandidates().add(user);
         }
+      
+        try {
+            String minutesToExamStart = "30";
+            emailService.sendMail(user.getUsername(), "noreply@cbt.com",
+                                  examNumber, minutesToExamStart, user.getName(),
+                                  exam.getOwner().toString(), EmailType.REGISTRATION_CONFIRMATION);
+        } catch (Exception mailException){
+            //throw new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT,"Failed to send email");
+            System.out.println("Failed to send email because: "+mailException);
+        }
 
         return examRepository.save(exam);
     }
@@ -154,6 +169,13 @@ public class ExamServiceImpl implements ExamService {
         }else {
             exam.getCandidates().addAll(candidates);
         }
+        String minutesToExamStart = "30";
+        candidates.forEach((candidate) -> {
+            emailService.sendMail(
+                    candidate.getUsername(), "noreply@cbt.com",
+                    examNumber, minutesToExamStart, user.getName(),
+                    exam.getOwner().toString(), EmailType.APPROVAL_CONFIRMATION);
+        });
 
         exam.getRegisteredCandidates().removeAll(candidates);
 
