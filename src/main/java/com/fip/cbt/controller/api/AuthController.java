@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1/auth")
@@ -19,7 +21,7 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "This is used to register a new user")
-    public void register(@RequestBody SignUpRequest signUpRequest){
+    public void register(@RequestBody @Valid SignUpRequest signUpRequest){
         authService.register(signUpRequest);
     }
 

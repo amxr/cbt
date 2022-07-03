@@ -2,6 +2,8 @@ package com.fip.cbt.controller.request;
 
 import com.fip.cbt.model.Role;
 import com.fip.cbt.validator.EnumNamePattern;
+import com.fip.cbt.validator.PasswordMatches;
+import com.fip.cbt.validator.ValidPassword;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -12,6 +14,7 @@ import javax.validation.constraints.Size;
 
 @Data
 @Accessors(chain = true)
+@PasswordMatches
 public class SignUpRequest {
     @NotBlank(message = "Name cannot be blank!")
     private String name;
@@ -21,8 +24,12 @@ public class SignUpRequest {
     private String email;
 
     @NotBlank(message = "password cannot be blank!")
-    @Size(min = 6, max = 16, message = "Password length must be between 6 and 16")
+    @ValidPassword
     private String password;
+
+    @NotBlank(message = "passwords must match!")
+    @ValidPassword
+    private String matchingPassword;
 
     @EnumNamePattern(regexp = "TESTOWNER|CANDIDATE")
     private Role role;
