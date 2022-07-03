@@ -5,6 +5,7 @@
 //import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 //import com.fip.cbt.CbtApplication;
 //import com.fip.cbt.controller.request.LoginCredentials;
+//import com.fip.cbt.controller.request.SignUpRequest;
 //import com.fip.cbt.model.Role;
 //import com.fip.cbt.model.User;
 //import com.fip.cbt.repository.UserRepository;
@@ -69,30 +70,37 @@
 //
 //    @Test
 //    public void createAndRegisterUserTest() throws Exception {
+//
+//        SignUpRequest aliceRequest = new SignUpRequest()
+//                .setName("Alice Alex")
+//                .setEmail("aalex@film.com")
+//                .setPassword("aliceAlex123")
+//                .setMatchingPassword("aliceAlex123")
+//                .setRole(Role.CANDIDATE);
 //        MvcResult result = mockMvc.perform(
 //                                          post(URI+"/register")
 //                                                  .contentType(MediaType.APPLICATION_JSON)
-//                                                  .content(mapToJson(alice))
+//                                                  .content(mapToJson(aliceRequest))
 //                                                  .accept(MediaType.APPLICATION_JSON))
 //                                  .andExpect(status().isCreated())
-//                                  .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                                  .andExpect(jsonPath("$.id").isString())
-//                                  .andExpect(jsonPath("$.name").value(alice.getName()))
+//                                  //.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+//                                  //.andExpect(jsonPath("$.id").isString())
+//                                  //.andExpect(jsonPath("$.name").value(alice.getName()))
 //                                  .andReturn();
 //
 //        mockMvc.perform(
 //                       post(URI+"/register")
 //                               .contentType(MediaType.APPLICATION_JSON)
-//                               .content(mapToJson(alice))
+//                               .content(mapToJson(aliceRequest))
 //                               .accept(MediaType.APPLICATION_JSON))
 //               .andExpect(status().isConflict())
 //               .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//               .andExpect(jsonPath("$.error_message").value("409 CONFLICT \"User exist!\""))
-//               .andExpect(jsonPath("$.error_code").value("409 CONFLICT"));
+//               .andExpect(jsonPath("$.error_message").value("User exist!"))
+//               .andExpect(jsonPath("$.error_code").value("CONFLICT"));
 //
-//        User aliceResult = mapFromJson(result.getResponse().getContentAsString(), User.class);
-//        assertNotNull(aliceResult);
-//        assertEquals(aliceResult.getName(), alice.getName());
+//        //User aliceResult = mapFromJson(result.getResponse().getContentAsString(), User.class);
+//        //assertNotNull(aliceResult);
+//        //assertEquals(aliceResult.getName(), alice.getName());
 //    }
 //
 //    @Test
@@ -166,3 +174,31 @@
 //        return objectMapper.readValue(json, clazz);
 //    }
 //}
+
+//List<String> emails = new ArrayList();
+//        //Valid Email Ids
+//        emails.add("simple@example.com");
+//        emails.add("very.common@example.com");
+//        emails.add("disposable.style.email.with+symbol@example.com");
+//        emails.add("other.email-with-hyphen@example.com");
+//        emails.add("fully-qualified-domain@example.com");
+//        emails.add("user.name+tag+sorting@example.com");
+//        emails.add("fully-qualified-domain@example.com");
+//        emails.add("x@example.com");
+//        emails.add("carlosd'intino@arnet.com.ar");
+//        emails.add("example-indeed@strange-example.com");
+//        emails.add("admin@mailserver1");
+//        emails.add("example@s.example");
+//        emails.add("\" \"@example.org");
+//        emails.add("\"john..doe\"@example.org");
+//
+//        //Invalid emails Ids
+//        emails.add("Abc.example.com");
+//        emails.add("A@b@c@example.com");
+//        emails.add("a\"b(c)d,e:f;g<h>i[j\\k]l@example.com");
+//        emails.add("just\"not\"right@example.com");
+//        emails.add("this is\"not\\allowed@example.com");
+//        emails.add("this\\ still\"not\\allowed@example.com");
+//        emails.add("1234567890123456789012345678901234567890123456789012345678901234+x@example.com");
+//        emails.add("john..doe@example.com");
+//        emails.add("john.doe@example..com");
