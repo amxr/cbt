@@ -193,7 +193,7 @@ ExamServiceImpl implements ExamService {
             if(LocalDateTime.now().isBefore(e.getStart())){
                 ScheduledExam se = new ScheduledExam()
                     .setExamNumber(e.getExamNumber())
-                    .setId(e.getId())
+                    .setExamId(e.getId())
                     .setStart(e.getStart())
                     .setName(e.getName())
                     .setApproved(true);
@@ -206,7 +206,7 @@ ExamServiceImpl implements ExamService {
             if(LocalDateTime.now().isBefore(e.getStart())){
                 ScheduledExam se = new ScheduledExam()
                     .setExamNumber(e.getExamNumber())
-                    .setId(e.getId())
+                    .setExamId(e.getId())
                     .setStart(e.getStart())
                     .setName(e.getName())
                     .setApproved(false);

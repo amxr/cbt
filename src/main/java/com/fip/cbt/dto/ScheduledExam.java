@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class ScheduledExam {
-    private Long id;
+    private Long examId;
     private String name;
     private String examNumber;
     private LocalDateTime start;
