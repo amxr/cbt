@@ -50,6 +50,10 @@ public class TakenExamServiceImpl implements TakenExamService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User can't submit an exam more than once");
         }
 
+        if(exam.getQuestions().size() != takenExamRequest.getResponses().size()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error processing questions [size of responses does not match available questions].");
+        }
+
         TakenExam takenExam = new TakenExam()
                 .setCandidate(user)
                 .setExam(exam)

@@ -15,6 +15,5 @@ public class QuestionResponseRequest {
     @Min(1)
     private Long questionId;
 
-    @NotBlank(message = "Answer cannot be blank!")
     private String userChoice;
 }
