@@ -1,6 +1,7 @@
 package com.fip.cbt.service.impl;
 
 import com.fip.cbt.controller.request.ExamRequest;
+import com.fip.cbt.dto.ScheduledExam;
 import com.fip.cbt.exception.ResourceAlreadyExistsException;
 import com.fip.cbt.exception.ResourceNotFoundException;
 import com.fip.cbt.dto.mapper.ExamMapper;
@@ -24,7 +25,9 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class ExamServiceImpl implements ExamService {
+public class
+
+ExamServiceImpl implements ExamService {
     @Autowired
     ExamRepository examRepository;
 
@@ -83,6 +86,9 @@ public class ExamServiceImpl implements ExamService {
         Exam exam = examRepository.findByExamNumberIgnoreCaseAndOwner(examNumber, user)
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Exam with number " + examNumber + " not found."));
+
+        questionRepository.deleteAllByExam(exam);
+
         examRepository.delete(exam);
     }
 
@@ -122,7 +128,7 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Exam userRegistration(String examNumber){
+    public void userRegistration(String examNumber){
         User user = userService.getUser();
 
         Exam exam = examRepository.findByExamNumberIgnoreCase(examNumber)
@@ -134,10 +140,10 @@ public class ExamServiceImpl implements ExamService {
             exam.getRegisteredCandidates().add(user);
         }
 
-        return examRepository.save(exam);
+        examRepository.save(exam);
     }
 
-    public Exam approveCandidates(String examNumber, Set<String> approvedCandidates){
+    public void approveCandidates(String examNumber, Set<String> approvedCandidates){
         User user = userService.getUser();
 
         Exam exam = examRepository.findByExamNumberIgnoreCaseAndOwner(examNumber, user)
@@ -157,11 +163,10 @@ public class ExamServiceImpl implements ExamService {
 
         exam.getRegisteredCandidates().removeAll(candidates);
 
-        return exam;
     }
 
     @Override
-    public Exam addQuestions(String examNumber, List<Question> questions) {
+    public void addQuestions(String examNumber, List<Question> questions) {
         User user = userService.getUser();
 
         Exam exam = examRepository.findByExamNumberIgnoreCaseAndOwner(examNumber, user)
@@ -173,6 +178,43 @@ public class ExamServiceImpl implements ExamService {
             questionRepository.save(question);
         }
 
-        return examRepository.getById(exam.getId());
+        examRepository.getById(exam.getId());
+    }
+
+    @Override
+    public List<ScheduledExam> getScheduledExams() {
+        User user = userService.getUser();
+        List<Exam> approvedExams = examRepository.findAllByCandidates(user);
+        List<Exam> registeredExams = examRepository.findAllByRegisteredCandidates(user);
+
+        List<ScheduledExam> scheduledExams = new ArrayList<>();
+
+        for(Exam e : approvedExams){
+            if(LocalDateTime.now().isBefore(e.getStart())){
+                ScheduledExam se = new ScheduledExam()
+                    .setExamNumber(e.getExamNumber())
+                    .setId(e.getId())
+                    .setStart(e.getStart())
+                    .setName(e.getName())
+                    .setApproved(true);
+
+                scheduledExams.add(se);
+            }
+        }
+
+        for(Exam e : registeredExams){
+            if(LocalDateTime.now().isBefore(e.getStart())){
+                ScheduledExam se = new ScheduledExam()
+                    .setExamNumber(e.getExamNumber())
+                    .setId(e.getId())
+                    .setStart(e.getStart())
+                    .setName(e.getName())
+                    .setApproved(false);
+
+                scheduledExams.add(se);
+            }
+        }
+
+        return scheduledExams;
     }
 }

@@ -50,6 +50,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, URI).hasAnyAuthority(Role.TESTOWNER.toString(), Role.CANDIDATE.toString())
                 .antMatchers(HttpMethod.POST, URI).hasAuthority(Role.TESTOWNER.toString())
                 .antMatchers(HttpMethod.PUT, URI + "/update/{examNumber}").hasAuthority(Role.TESTOWNER.toString())
+                .antMatchers(HttpMethod.GET, URI + "/scheduled").hasAuthority(Role.CANDIDATE.toString())
                 .antMatchers(HttpMethod.PUT, URI + "/{examNumber}/add-questions").hasAuthority(Role.TESTOWNER.toString())
                 .antMatchers(HttpMethod.GET, URI+"/{examNumber}").hasAnyAuthority(Role.TESTOWNER.toString(), Role.CANDIDATE.toString())
                 .antMatchers(HttpMethod.PATCH, URI+"/{examNumber}/candidates/approve").hasAnyAuthority(Role.TESTOWNER.toString())

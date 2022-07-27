@@ -1,6 +1,7 @@
 package com.fip.cbt.controller.api;
 
 import com.fip.cbt.controller.request.ExamRequest;
+import com.fip.cbt.dto.ScheduledExam;
 import com.fip.cbt.model.Exam;
 import com.fip.cbt.model.Question;
 import com.fip.cbt.service.ExamService;
@@ -70,5 +71,11 @@ public class ExamController {
     @PatchMapping("/{examNumber}/register")
     public void userRegistration(@PathVariable String examNumber){
         examService.userRegistration(examNumber);
+    }
+
+    @Operation(summary = "This is used by candidates to view scheduled exam.")
+    @GetMapping("/scheduled")
+    public List<ScheduledExam> getScheduledExams(){
+        return examService.getScheduledExams();
     }
 }

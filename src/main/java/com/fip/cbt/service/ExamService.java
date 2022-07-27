@@ -1,6 +1,7 @@
 package com.fip.cbt.service;
 
 import com.fip.cbt.controller.request.ExamRequest;
+import com.fip.cbt.dto.ScheduledExam;
 import com.fip.cbt.model.Exam;
 import com.fip.cbt.model.Question;
 
@@ -21,9 +22,11 @@ public interface ExamService {
 
     //Exam addCandidates(String examNumber, AddCandidatesRequest addCandidatesRequest);
 
-    Exam userRegistration(String examNumber);
+    void userRegistration(String examNumber);
 
-    Exam approveCandidates(String examNumber, Set<String> approvedCandidates);
+    void approveCandidates(String examNumber, Set<String> approvedCandidates);
 
-    Exam addQuestions(String examNumber, List<Question> questions);
+    void addQuestions(String examNumber, List<Question> questions);
+
+    List<ScheduledExam> getScheduledExams();
 }
